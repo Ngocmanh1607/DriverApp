@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "148701936865",
+    "project_id": "online-food-cbac0",
+    "storage_bucket": "online-food-cbac0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148701936865:android:171423e00f72afb0c44ba0",
+        "android_client_info": {
+          "package_name": "com.driverapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvKWml8UqzY5HhAkMgbDbVsK_3cJyj9H8"
+        },
+        {
+          "current_key": "AIzaSyD_bCfrCh6HQ4nZE98K0tLmEMlGpkTP9Dg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148701936865:android:145758ab2dd1a6d2c44ba0",
+        "android_client_info": {
+          "package_name": "com.myrestaurantapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvKWml8UqzY5HhAkMgbDbVsK_3cJyj9H8"
+        },
+        {
+          "current_key": "AIzaSyD_bCfrCh6HQ4nZE98K0tLmEMlGpkTP9Dg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148701936865:android:e9b7c4dcea71549cc44ba0",
+        "android_client_info": {
+          "package_name": "com.userapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvKWml8UqzY5HhAkMgbDbVsK_3cJyj9H8"
+        },
+        {
+          "current_key": "AIzaSyD_bCfrCh6HQ4nZE98K0tLmEMlGpkTP9Dg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

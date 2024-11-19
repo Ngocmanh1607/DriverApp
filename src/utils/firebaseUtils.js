@@ -1,19 +1,25 @@
+
 import storage from '@react-native-firebase/storage';
 
-const uploadRestaurantImage = async (userId, imageUri) => {
+const uploadUserImage = async (driverId, imageUri) => {
     try {
-        const response = await fetch(imageUri); // Fetch the image from URI
-        const blob = await response.blob(); // Convert it to a blob
+        // Tạo đường dẫn lưu trữ trên Firebase Storage
+        const storagePath = `drivers/${driverId}/driver_image.jpg`;
 
-        // Create a reference to where the image will be stored
-        const storageRef = storage().ref(`restaurants/${userId}/restaurant_image.jpg`);
+        // Upload ảnh lên Firebase Storage
+        const reference = storage().ref(storagePath);
+        const task = reference.putFile(imageUri);
 
-        // Upload the image
-        await storageRef.put(blob);
+        // Theo dõi tiến trình tải lên (tuỳ chọn)
+        task.on('state_changed', taskSnapshot => {
+            console.log(
+                `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`
+            );
+        });
 
-        // Get the download URL after upload
-        const downloadURL = await storageRef.getDownloadURL();
+        await task;
 
+        const downloadURL = await reference.getDownloadURL();
         console.log('Image URL:', downloadURL);
         return downloadURL;
     } catch (error) {
@@ -22,26 +28,4 @@ const uploadRestaurantImage = async (userId, imageUri) => {
     }
 };
 
-const uploadFoodImage = async (restaurantId, foodName, imageUri) => {
-    try {
-        const response = await fetch(imageUri); // Fetch the image from URI
-        const blob = await response.blob(); // Convert it to a blob
-
-        // Create a reference to where the food image will be stored
-        const storageRef = storage().ref(`restaurants/${restaurantId}/food-images/${foodName}.jpg`);
-
-        // Upload the image
-        await storageRef.put(blob);
-
-        // Get the download URL after upload
-        const downloadURL = await storageRef.getDownloadURL();
-
-        console.log('Image URL:', downloadURL);
-        return downloadURL;
-    } catch (error) {
-        console.error('Error uploading food image:', error);
-        throw error;
-    }
-};
-
-export { uploadRestaurantImage, uploadFoodImage };
+export { uploadUserImage };

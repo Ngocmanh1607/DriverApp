@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import PasswordInput from '../components/PasswordInput';
 import { useNavigation } from '@react-navigation/native';
-import { signupApi } from '../api/restaurantApi'; // Import API
+import { signupApi } from '../api/driverApi';
 
 const SignupScreen = () => {
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,9 +53,9 @@ const SignupScreen = () => {
         if (validate()) {
             setLoading(true);
             try {
-                const response = await signupApi(email, password); // Gọi API đăng ký
+                const response = await signupApi(email, password);
                 console.log('Signup success:', response);
-                // navigation.navigate('Đăng kí thông tin');
+                navigation.navigate('Đăng kí thông tin');
             } catch (error) {
                 console.error('Signup failed:', error);
                 setErrors({ apiError: 'Signup failed. Please try again later.' });

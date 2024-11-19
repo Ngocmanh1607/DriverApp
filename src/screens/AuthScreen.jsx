@@ -5,35 +5,32 @@ import LoginScreen from './LoginScreen';
 import SignupScreen from './SignupScreen';
 
 const TabScreen = () => {
-    // Tắt cảnh báo liên quan đến key
-    LogBox.ignoreLogs([
-        'A props object containing a "key" prop is being spread into JSX'
-    ]);
+    LogBox.ignoreLogs(['A props object containing a "key" prop is being spread into JSX']);
+
     const layout = useWindowDimensions();
     const [index, setIndex] = useState(0);
     const [routes] = useState([
         { key: 'login', title: 'Login' },
         { key: 'signup', title: 'Sign Up' },
     ]);
+
     const renderScene = SceneMap({
         login: LoginScreen,
         signup: SignupScreen,
     });
-    const renderTabBar = props => {
-        const { key, ...restProps } = props;
-        return (
-            <TabBar
-                {...restProps}
-                indicatorStyle={styles.indicator}
-                style={styles.tabBar}
-                renderLabel={({ route, focused }) => (
-                    <Text style={[styles.label, { color: focused ? '#FF0000' : 'black' }]}>
-                        {route.title}
-                    </Text>
-                )}
-            />
-        )
-    };
+
+    const renderTabBar = (props) => (
+        <TabBar
+            {...props}
+            indicatorStyle={styles.indicator}
+            style={styles.tabBar}
+            renderLabel={({ route, focused }) => (
+                <Text style={[styles.label, { color: focused ? '#FF0000' : '#000' }]}>
+                    {route.title}
+                </Text>
+            )}
+        />
+    );
 
     return (
         <TabView
@@ -46,8 +43,7 @@ const TabScreen = () => {
     );
 };
 const AuthScreen = () => {
-    const slideAnim = useRef(new Animated.Value(1000)).current; // Bắt đầu từ vị trí ngoài màn hình (dưới)
-
+    const slideAnim = useRef(new Animated.Value(1000)).current;
     useEffect(() => {
         Animated.timing(slideAnim, {
             toValue: 0,
@@ -76,14 +72,20 @@ const styles = StyleSheet.create({
         marginHorizontal: '10%'
     },
     tabBar: {
-        backgroundColor: "#FFFFFF",
+        zIndex: 1,
+        backgroundColor: "#fff",
         borderTopRightRadius: 25,
         borderTopLeftRadius: 25,
+        elevation: 4,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
     },
     label: {
         fontSize: 16,
         fontWeight: '500',
-
+        textAlign: 'center',
     },
     container: {
         flex: 1,

@@ -90,5 +90,15 @@
 		<string>We need access to your photo library to choose pictures.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>We need access to save photos to your library.</string>
+
+		<key>aps-environment</key>
+		<string>development</string>
+
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
+
 	</dict>
 </plist>
