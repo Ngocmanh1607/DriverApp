@@ -2,11 +2,11 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Alert, Touc
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Fontisto from 'react-native-vector-icons/Fontisto';
-import { loginApi } from '../api/restaurantApi';
 import PasswordInput from '../components/PasswordInput';
+import { loginApi } from '../api/driverApi';
 
 const LoginScreen = () => {
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState({});
@@ -43,7 +43,7 @@ const LoginScreen = () => {
                 const response = await loginApi(email, password);
                 if (response) {
                     Alert.alert('Login Successful', `Welcome, ${email}!`);
-                    // navigation.navigate('Trang chủ');
+                    navigation.navigate('MainDrawer');
                 }
             } catch (error) {
                 console.log(error)

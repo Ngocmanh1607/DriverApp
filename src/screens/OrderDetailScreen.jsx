@@ -2,109 +2,84 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView } from 'rea
 import React from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useNavigation } from '@react-navigation/native';
+import formatPrice from '../utils/formatPrice';
 const OrderDetailScreen = ({ route }) => {
-    // const { item } = route.params;
-    // const items = item.listCartItem
-    console.log('Topping', items)
+    const { ordersNew } = route.params;
+    const items = ordersNew.listCartItem
     const navigation = useNavigation()
-    // Mock data for the order details
-    const orderDetails = {
-        driver: {
-            name: 'Pham Trung Kien',
-            rating: 5.0,
-            vehicle: 'Yamaha | Nozza',
-            licensePlate: '68T1-572.84',
-            driverImage: 'https://link-to-driver-image.com/driver.jpg', // Replace with a real image
-        },
-        items: [
-            {
-                name: 'Mì Soyum bò Mỹ',
-                price: 70000,
-                quantity: 1,
-                options: [
-                    'Chọn cách chế biến I: Nấu Chín (Phí hộp đựng muỗng đũa)',
-                    'Chọn cấp độ cay: Cấp 2',
-                    'nhiều nước chấm muối ớt xanh'
-                ],
-                image: 'https://link-to-item-image.com/item1.jpg', // Replace with a real image
-            },
-            {
-                name: 'Mì Kim chi bò Mỹ',
-                price: 70000,
-                quantity: 2,
-                options: [
-                    'Chọn cách chế biến I: Nấu Chín (Phí hộp đựng muỗng đũa)',
-                    'Chọn cấp độ cay: Cấp 2'
-                ],
-                image: 'https://link-to-item-image.com/item2.jpg', // Replace with a real image
-            },
-        ],
-        total: '93.000₫',
-        paymentMethod: 'MoMo',
-        orderId: '29270933',
-        orderTime: '28/08/2024 | 19:20',
-    };
-
     return (
         <ScrollView style={styles.container}>
             {/* Order ID */}
             <View style={styles.orderIdContainer}>
-                <Text style={styles.orderId}>Mã đơn: {orderDetails.orderId}</Text>
-                <Text style={styles.orderTime}>{orderDetails.orderTime}</Text>
+                <Text style={styles.orderId}>Mã đơn: {ordersNew.id}</Text>
+                <Text style={styles.orderTime}>{ordersNew.order_date}</Text>
             </View>
-            {/* Driver Information */}
+            <View style={styles.orderUser}>
+                <Text style={styles.orderId}>Người nhận: {ordersNew.receiver_name} - </Text>
+                <Text style={styles.orderTime}>{ordersNew.phone_number}</Text>
+            </View>
+            {/* Res Information */}
             <View style={styles.driverInfoContainer}>
-                <Text style={styles.licensePlate}>{orderDetails.driver.licensePlate}</Text>
-                <Text>{orderDetails.driver.vehicle}</Text>
+                <Image source={{ uri: ordersNew.Restaurant.image }} style={styles.driverImage} />
                 <View style={styles.driverDetails}>
-                    <Image source={require('../access/Images/Shipper.webp')} style={styles.driverImage} />
-                    <View style={styles.driverInfo}>
-                        <Text style={styles.driverName}>{orderDetails.driver.name}</Text>
-                        <Text style={styles.driverRating}>⭐ {orderDetails.driver.rating}</Text>
-                    </View>
+                    <Text style={styles.resDetail}>{ordersNew.Restaurant.name}</Text>
+                    <Text style={styles.resDes}>{ordersNew.Restaurant.description}</Text>
+                    <Text style={styles.driverRating}>⭐ {ordersNew.Restaurant.rating || 5}</Text>
                 </View>
             </View>
+
 
             {/* Ordered Items */}
-            {items.map((item, index) => (
-                <View key={index} style={styles.orderItemContainer}>
-                    <View style={styles.orderItemDetails}>
-                        <Image source={{ uri: item.image }} style={styles.orderItemImage} />
-                        <View style={styles.orderItemText}>
-                            <Text style={styles.orderItemName}>{item.name}</Text>
-                            {
-                                item.toppings.length > 0 && item.toppings.map((id, topping_name) => (
-                                    <Text key={id} style={styles.orderItemOption}>{topping_name}</Text>
-                                ))
-                            }
+            {
+                items.map((item, index) => (
+                    <View key={index} style={styles.orderItemContainer}>
+                        <View style={styles.orderItemDetails}>
+                            <Image source={{ uri: item.image }} style={styles.orderItemImage} />
+                            <View style={styles.orderItemText}>
+                                <Text style={styles.orderItemName}>{item.name}</Text>
+                                {
+                                    item.toppings && item.toppings.length > 0 &&
+                                    item.toppings.map((topping, toppingIndex) => (
+                                        <Text key={toppingIndex} style={styles.orderItemOption}>
+                                            {topping.topping_name}
+                                        </Text>
+                                    ))
+                                }
+                            </View>
+                        </View>
+                        <View style={styles.orderInfPay}>
+                            <Text style={styles.orderInfPayText}>Số lượng: {item.quantity}</Text>
+                            <Text style={styles.orderInfPayText}>{formatPrice(item.quantity * item.price)}</Text>
                         </View>
                     </View>
-                    <View style={styles.orderInfPay}>
-                        <Text style={styles.orderInfPayText}>Số lượng: {item.quantity}</Text>
-                        <Text style={styles.orderInfPayText}>{item.quantity * item.price} đ</Text>
-                    </View>
-                </View>
-            ))}
-
+                ))
+            }
+            {/* Note */}
+            {
+                ordersNew.note && (
+                    <View style={styles.noteContainer}>
+                        <Text>Ghi chú: {ordersNew.note}</Text>
+                    </View>)
+            }
             {/* Payment Information */}
             <View style={styles.paymentInfoContainer}>
-                <Text style={styles.paymentMethod}>Trả qua {orderDetails.paymentMethod}</Text>
-                <Text style={styles.orderTotal}>{orderDetails.total}</Text>
-                <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Chi tiết thanh toán</Text>
+                <Text style={styles.paymentMethod}>Trả qua {ordersNew.order_pay}</Text>
+                <Text style={styles.orderTotal}>{formatPrice(ordersNew.price)}</Text>
+                {/* <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Chi tiết thanh toán</Text> */}
                 {/* Tạm tính */}
-                <View style={[styles.paymentContainer, { marginTop: 10 }]}>
+                {/* <View style={[styles.paymentContainer, { marginTop: 10 }]}>
                     <Text style={styles.paymentText}>Tạm tính</Text>
-                    <Text style={styles.paymentText}>210000 đ</Text>
-                </View>
+                    <Text style={styles.paymentText}></Text>
+                </View> */}
                 {/* Giảm giá */}
-                <View style={styles.paymentContainer}>
+                {/* <View style={styles.paymentContainer}>
                     <Text style={styles.paymentText}>Giảm giá</Text>
                     <Text style={styles.paymentText}>21000 đ</Text>
-                </View>
+                </View> */}
                 {/* Tổng thu */}
                 <View style={styles.paymentSumContainer}>
                     <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Tổng tính</Text>
-                    <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>189000 đ</Text>
+                    <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>{formatPrice(ordersNew.price)}</Text>
                 </View>
             </View>
 
@@ -112,7 +87,7 @@ const OrderDetailScreen = ({ route }) => {
             <TouchableOpacity style={styles.completeButton}>
                 <Text style={styles.completeButtonText}>Hoàn thành</Text>
             </TouchableOpacity>
-        </ScrollView>
+        </ScrollView >
     );
 };
 
@@ -129,21 +104,20 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 8,
         marginBottom: 15,
+        flexDirection: 'row'
     },
-    licensePlate: {
+    resDetail: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333'
     },
     driverDetails: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 10,
+        marginLeft: 10,
     },
     driverImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 10
     },
     driverInfo: {
         marginLeft: 10,
@@ -213,6 +187,14 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+    orderUser: {
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 8,
+        marginBottom: 15,
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
     },
     orderId: {
         fontSize: 14,

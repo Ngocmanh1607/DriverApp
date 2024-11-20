@@ -116,7 +116,7 @@ const updateDriver = async (driver) => {
         throw error;
     }
 }
-const updateLicenseDriver = async (license) => {
+const updateLicenseDriver = async (info) => {
     const userId = await AsyncStorage.getItem('userId');
     const accessToken = await AsyncStorage.getItem('accessToken');
     console.log(accessToken)
@@ -127,7 +127,8 @@ const updateLicenseDriver = async (license) => {
         const response = await apiClient.put(`/driver`,
             {
                 driver: {
-                    license_plate: license
+                    car_name: info.name,
+                    license_plate: info.license
                 }
             },
             {
@@ -144,4 +145,99 @@ const updateLicenseDriver = async (license) => {
         throw error;
     }
 }
-export { signupApi, loginApi, updateDriver, updateLicenseDriver };
+const acceptOrder = async (orderId) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    console.log(accessToken)
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`driver/accept/${orderId}`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        console.log(response.data.metadata)
+        return response.data.metadata;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+const rejectOrder = async (orderId) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    console.log(accessToken)
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`/driver/reject${orderId}`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        console.log(response.data.metadata)
+        return response.data.metadata;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+const confirmOrder = async (orderId) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    console.log(accessToken)
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`/driver/confirm/${orderId}`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        console.log(response.data.metadata)
+        return response.data.metadata;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+const getInfoUser = async () => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`/profile`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        return response.data.metadata;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        throw new Error('Failed to fetch user info');
+    }
+}
+
+export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser };

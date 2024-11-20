@@ -58,7 +58,7 @@ const RegisterInf = () => {
                 image: url,
             };
             const response = await updateDriver(profile);
-            await updateLicenseDriver(bike.license_plate)
+            await updateLicenseDriver(bike)
             if (response) {
                 Snackbar.show({
                     text: 'Thông tin của bạn đã được cập nhật.',
