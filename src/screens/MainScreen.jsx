@@ -6,7 +6,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { acceptOrder } from '../api/driverApi';
+import { acceptOrder, confirmOrder, getInfoUser, rejectOrder } from '../api/driverApi';
 
 const socket = io("http://192.168.55.147:3000");
 const MainScreen = () => {
@@ -20,7 +20,8 @@ const MainScreen = () => {
     const [ordersNew, setOrdersNew] = useState();
     useEffect(() => {
         const fetchDriverId = async () => {
-            const id = await AsyncStorage.getItem('userId');
+            await getInfoUser();
+            const id = await AsyncStorage.getItem('driverId');
             setDriverId(id);
         };
         fetchDriverId();
@@ -56,7 +57,11 @@ const MainScreen = () => {
             return status === 'granted';
         }
     };
-
+    useEffect(() => {
+        if (route1.length > 0 || route2.length > 0) {
+            saveStateToStorage();
+        }
+    }, [route1, route2]);
     useEffect(() => {
         const watchShipperLocation = async () => {
             const hasPermission = await requestLocationPermission();
@@ -80,10 +85,57 @@ const MainScreen = () => {
     useEffect(() => {
         if (shipperLocation) {
             socket.emit("updateLocation", {
-                driverId: 2,
+                driverId: driverId,
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
+        }
+    }, [shipperLocation]);
+
+    // Lưu trạng thái vào AsyncStorage
+    const saveStateToStorage = async () => {
+        try {
+            console.log("Saving to storage:", route1, route2);
+            await AsyncStorage.setItem(
+                `appState`,
+                JSON.stringify({
+                    route1,
+                    route2,
+                })
+            );
+        } catch (error) {
+            console.error("Error saving state:", error);
+        }
+    };
+
+    // Khôi phục trạng thái từ AsyncStorage
+    const restoreStateFromStorage = async () => {
+        try {
+            const savedState = await AsyncStorage.getItem(`appState`);
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                console.log(parsedState)
+                setRoute1(parsedState.route1);
+                setRoute2(parsedState.route2);
+            }
+        } catch (error) {
+            console.error("Error restoring state:", error);
+        }
+    };
+
+    // Lấy driverId và khôi phục trạng thái
+    useEffect(() => {
+        const initialize = async () => {
+            await restoreStateFromStorage(); // Khôi phục trạng thái
+        };
+        initialize();
+    }, []); // Khôi phục khi driverId thay đổi
+    // Cập nhật route khi có đơn hàng
+    useEffect(() => {
+        if (ordersNew && shipperLocation && restaurantLocation && userLocation) {
+            getRoute(shipperLocation, restaurantLocation, setRoute1);
+            getRoute(restaurantLocation, userLocation, setRoute2);
+            saveStateToStorage();
         }
     }, [shipperLocation]);
     const getRoute = async (origin, destination, setRoute) => {
@@ -103,11 +155,10 @@ const MainScreen = () => {
     useEffect(() => {
         let socket;
         const initializeSocket = async () => {
-            const driverId = await AsyncStorage.getItem('userId');
             socket = io('http://localhost:3000');
 
             socket.on('connect', () => {
-                socket.emit('joinDriver', 2);
+                socket.emit('joinDriver', driverId);
             });
             // Nhận danh sách đơn hàng
             socket.on('ordersListOfDriver', (orders) => {
@@ -137,19 +188,42 @@ const MainScreen = () => {
             socket?.disconnect();
         };
     }, []);
-    console.log("order new ", ordersNew);
     const handlePress = () => {
         navigation.navigate("OrderDetail", { ordersNew })
     }
 
     const handleAccept = () => {
         const fetchAcceptOrder = async () => {
-            const response = await acceptOrder(ordersNew.id)
-            setUserLocation(response);
-            getRoute(shipperLocation, restaurantLocation, setRoute1);
-            getRoute(restaurantLocation, userLocation, setRoute2);
+            const response = await acceptOrder(ordersNew.id);
+            if (response.latitudeUser && response.longtitudeUser) {
+                const updatedUserLocation = {
+                    latitude: parseFloat(response.latitudeUser),
+                    longitude: parseFloat(response.longtitudeUser),
+                };
+                setUserLocation(updatedUserLocation)
+                getRoute(shipperLocation, restaurantLocation, setRoute1);
+                getRoute(restaurantLocation, updatedUserLocation, setRoute2);
+                saveStateToStorage();
+            } else {
+                console.error("Invalid location data:", response);
+            }
+        };
+
+        fetchAcceptOrder();
+    };
+    const handleReject = () => {
+        const fetchRejectOrder = async () => {
+            const response = await rejectOrder(ordersNew.id);
+            setOrdersNew();
         }
-        fetchAcceptOrder()
+        fetchRejectOrder();
+    }
+    const handleComplete = () => {
+        const fetchConfirmOrder = async () => {
+            await confirmOrder(ordersNew.id);
+            setOrdersNew();
+        }
+        fetchConfirmOrder();
     }
     return (
         <View style={styles.container}>
@@ -164,25 +238,34 @@ const MainScreen = () => {
 
                 {shipperLocation && (
                     <MapboxGL.PointAnnotation
-                        id="shipper"
+                        id="customMarker"
                         coordinate={[shipperLocation.longitude, shipperLocation.latitude]}
-                        title="Shipper"
-                    />
+                    >
+                        <View>
+                            <Text style={styles.markerText}>🛵</Text>
+                        </View>
+                    </MapboxGL.PointAnnotation>
                 )}
                 {ordersNew && restaurantLocation && (
                     <MapboxGL.PointAnnotation
-                        id="restaurant"
+                        id="customMarker"
                         coordinate={[restaurantLocation.longitude, restaurantLocation.latitude]}
-                        title="Restaurant"
-                    />
+                    >
+                        <View>
+                            <Text style={styles.markerText}>🏡</Text>
+                        </View>
+                    </MapboxGL.PointAnnotation>
                 )}
 
                 {ordersNew && userLocation && (
                     <MapboxGL.PointAnnotation
-                        id="user"
+                        id="customMarker"
                         coordinate={[userLocation.longitude, userLocation.latitude]}
-                        title="User"
-                    />
+                    >
+                        <View>
+                            <Text style={styles.markerText}>🏡</Text>
+                        </View>
+                    </MapboxGL.PointAnnotation>
                 )}
 
                 {/* Route từ shipper đến nhà hàng */}
@@ -227,13 +310,35 @@ const MainScreen = () => {
                         <Text style={styles.address}>📍 {ordersNew.address_receiver}</Text>
 
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept()}>
-                                <Text style={styles.buttonText}>Accept</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.rejectButton}>
-                                <Text style={styles.buttonText}>Reject</Text>
-                            </TouchableOpacity>
+                            {ordersNew.order_status === "PREPARING_ORDER" ? (
+                                <>
+                                    <TouchableOpacity
+                                        style={[styles.acceptButton, { backgroundColor: "#33CC66" }]}
+                                        onPress={() => handleAccept()}
+                                    >
+                                        <Text style={styles.buttonText}>Accept</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.rejectButton, { backgroundColor: "#FF4D4D" }]}
+                                        onPress={() => handleReject()}
+                                    >
+                                        <Text style={styles.buttonText}>Reject</Text>
+                                    </TouchableOpacity>
+                                </>
+                            ) : ordersNew.order_status === "DELIVERING" ? (
+                                <TouchableOpacity
+                                    style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
+                                    onPress={() => handleComplete()}
+                                >
+                                    <Text style={styles.buttonText}>Complete</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <View>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Order Completed</Text>
+                                </View>
+                            )}
                         </View>
+
                     </>) : (
                     <View style={styles.noOrderContainer}>
                         <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
@@ -319,6 +424,9 @@ const styles = StyleSheet.create({
     noOrderText: {
         fontSize: 16,
         fontWeight: '500',
+    },
+    markerText: {
+        fontSize: 20,
     },
 });
 

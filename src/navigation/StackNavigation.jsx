@@ -1,4 +1,4 @@
-import { StyleSheet, ActivityIndicator } from 'react-native';
+import { StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -12,6 +12,10 @@ import RegisterInf from '../screens/RegisterInf';
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
+const handleLogout = (navigation) => {
+    navigation.replace('Auth'); // Chuyển hướng đến màn hình đăng nhập
+};
+
 // Drawer for MainScreen and Profile
 const MainDrawer = () => (
     <Drawer.Navigator
@@ -19,7 +23,20 @@ const MainDrawer = () => (
         screenOptions={{ headerShown: true }}
     >
         <Drawer.Screen name="Home" component={MainScreen} />
-        <Drawer.Screen name="Profile" component={Profile} />
+        <Drawer.Screen
+            name="Profile"
+            component={Profile}
+            options={({ navigation }) => ({
+                headerRight: () => (
+                    <TouchableOpacity
+                        style={{ marginLeft: 16 }}
+                        onPress={() => handleLogout(navigation)}
+                    >
+                        <Text style={{ color: '#FF0000', marginRight: 10 }}>Đăng xuất</Text>
+                    </TouchableOpacity>
+                ),
+            })}
+        />
     </Drawer.Navigator>
 );
 
@@ -59,7 +76,11 @@ const StackNavigation = () => {
                 options={{ headerShown: true, headerBackTitle: "Quay lại" }}
             />
             <Stack.Screen name="MainDrawer" component={MainDrawer} />
-            <Stack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ headerShown: true, headerBackTitle: "Quay lại", title: " Chi tiết" }} />
+            <Stack.Screen
+                name="OrderDetail"
+                component={OrderDetailScreen}
+                options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Chi tiết" }}
+            />
         </Stack.Navigator>
     );
 };

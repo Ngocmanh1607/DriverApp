@@ -55,7 +55,6 @@ const loginApi = async (email, password) => {
                 }
             }
         );
-
         const { message, metadata } = response.data;
         if (!message) {
             console.error('Error message:', message);
@@ -117,6 +116,7 @@ const updateDriver = async (driver) => {
     }
 }
 const updateLicenseDriver = async (info) => {
+    console.log(info);
     const userId = await AsyncStorage.getItem('userId');
     const accessToken = await AsyncStorage.getItem('accessToken');
     console.log(accessToken)
@@ -128,7 +128,7 @@ const updateLicenseDriver = async (info) => {
             {
                 driver: {
                     car_name: info.name,
-                    license_plate: info.license
+                    license_plate: info.license_plate
                 }
             },
             {
@@ -177,7 +177,7 @@ const rejectOrder = async (orderId) => {
         throw new Error("User not logged in");
     }
     try {
-        const response = await apiClient.get(`/driver/reject${orderId}`,
+        const response = await apiClient.get(`/driver/reject/${orderId}`,
             {
                 headers: {
                     "x-api-key": apiKey,
@@ -194,6 +194,7 @@ const rejectOrder = async (orderId) => {
     }
 }
 const confirmOrder = async (orderId) => {
+    console.log(orderId)
     const userId = await AsyncStorage.getItem('userId');
     const accessToken = await AsyncStorage.getItem('accessToken');
     console.log(accessToken)
@@ -224,7 +225,7 @@ const getInfoUser = async () => {
         throw new Error("User not logged in");
     }
     try {
-        const response = await apiClient.get(`/profile`,
+        const response = await apiClient.get(`/driver/detail`,
             {
                 headers: {
                     "x-api-key": apiKey,
@@ -233,6 +234,7 @@ const getInfoUser = async () => {
                 }
             }
         );
+        AsyncStorage.setItem('driverId', response.data.metadata.Driver.id.toString())
         return response.data.metadata;
     } catch (error) {
         console.error('Error fetching user info:', error);

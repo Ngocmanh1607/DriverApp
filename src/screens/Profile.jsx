@@ -17,23 +17,27 @@ const Profile = () => {
         date: '',
         phone_number: '',
     });
+    const [bike, setBike] = useState({
+        license_plate: '',
+        name: ''
+    })
     useEffect(() => {
         const fetchInfoUser = async () => {
             const response = await getInfoUser();
             setUserInfo({
-                name: response.profile.name,
-                image: response.profile.image,
-                phone_number: response.profile.phone_number,
-                date: response.profile.date.split('T')[0],
+                name: response.name,
+                image: response.image,
+                phone_number: response.phone_number,
+                date: response.date.split('T')[0],
+            })
+            setBike({
+                license_plate: response.Driver.license_plate,
+                name: response.Driver.car_name,
             })
             console.log(response)
         }
         fetchInfoUser();
     }, [])
-    const [bike, setBike] = useState({
-        license_plate: '',
-        name: ''
-    })
     const [isLoading, setIsLoading] = useState(false);
     const [imageUri, setImageUri] = useState(userInfo.image);
 
@@ -60,31 +64,37 @@ const Profile = () => {
     };
 
     const handleSaveChanges = async () => {
-        try {
-            setIsLoading(true);
-            const url = await uploadFirebase(imageUri);
-            if (!url) {
-                Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
-                return;
+        if (isEditting) {
+            try {
+                setIsLoading(true);
+                const url = await uploadFirebase(imageUri);
+                if (!url) {
+                    Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+                    return;
+                }
+                const profile = {
+                    ...userInfo,
+                    image: url,
+                };
+                const response = await updateDriver(profile);
+                await updateLicenseDriver(bike)
+                if (response) {
+                    Snackbar.show({
+                        text: 'Thông tin của bạn đã được cập nhật.',
+                        duration: Snackbar.LENGTH_SHORT,
+                    });
+                    navigation.navigate('MainDrawer')
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
+            } finally {
+                setIsLoading(false);
+                setIsEditting(false)
             }
-            const profile = {
-                ...userInfo,
-                image: url,
-            };
-            const response = await updateDriver(profile);
-            await updateLicenseDriver(bike)
-            if (response) {
-                Snackbar.show({
-                    text: 'Thông tin của bạn đã được cập nhật.',
-                    duration: Snackbar.LENGTH_SHORT,
-                });
-                navigation.navigate('MainDrawer')
-            }
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
-        } finally {
-            setIsLoading(false);
+        }
+        else {
+            setIsEditting(true)
         }
     };
 
@@ -145,8 +155,8 @@ const Profile = () => {
                         </View>
 
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-                                <Text style={styles.buttonText}>{isEditting ? 'Chỉnh sửa' : 'Lưu'}</Text>
+                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditting ? '#33CC66' : '#FF0000' }]} onPress={handleSaveChanges}>
+                                <Text style={styles.buttonText}>{isEditting ? 'Lưu' : 'Chỉnh sửa'}</Text>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>

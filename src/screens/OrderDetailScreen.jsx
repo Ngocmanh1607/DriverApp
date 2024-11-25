@@ -49,7 +49,7 @@ const OrderDetailScreen = ({ route }) => {
                         </View>
                         <View style={styles.orderInfPay}>
                             <Text style={styles.orderInfPayText}>Số lượng: {item.quantity}</Text>
-                            <Text style={styles.orderInfPayText}>{formatPrice(item.quantity * item.price)}</Text>
+                            <Text style={styles.orderInfPayText}>{formatPrice(item.price)}</Text>
                         </View>
                     </View>
                 ))
@@ -64,13 +64,16 @@ const OrderDetailScreen = ({ route }) => {
             {/* Payment Information */}
             <View style={styles.paymentInfoContainer}>
                 <Text style={styles.paymentMethod}>Trả qua {ordersNew.order_pay}</Text>
-                <Text style={styles.orderTotal}>{formatPrice(ordersNew.price)}</Text>
+                <View style={styles.paymentContainer}>
+                    <Text style={styles.paymentText}>Tạm tính: </Text>
+                    <Text style={styles.orderTotal}>{formatPrice(ordersNew.price)}</Text>
+                </View>
                 {/* <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Chi tiết thanh toán</Text> */}
                 {/* Tạm tính */}
-                {/* <View style={[styles.paymentContainer, { marginTop: 10 }]}>
-                    <Text style={styles.paymentText}>Tạm tính</Text>
-                    <Text style={styles.paymentText}></Text>
-                </View> */}
+                <View style={[styles.paymentContainer, { marginTop: 10 }]}>
+                    <Text style={styles.paymentText}>Phí giao hàng:</Text>
+                    <Text style={styles.paymentText}>{formatPrice(ordersNew.delivery_fee)}</Text>
+                </View>
                 {/* Giảm giá */}
                 {/* <View style={styles.paymentContainer}>
                     <Text style={styles.paymentText}>Giảm giá</Text>
@@ -82,12 +85,7 @@ const OrderDetailScreen = ({ route }) => {
                     <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>{formatPrice(ordersNew.price)}</Text>
                 </View>
             </View>
-
-            {/* Complete Button */}
-            <TouchableOpacity style={styles.completeButton}>
-                <Text style={styles.completeButtonText}>Hoàn thành</Text>
-            </TouchableOpacity>
-        </ScrollView >
+        </ScrollView>
     );
 };
 
