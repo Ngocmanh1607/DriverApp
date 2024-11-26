@@ -6,192 +6,136 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { acceptOrder, confirmOrder, getInfoUser, rejectOrder } from '../api/driverApi';
+import { acceptOrder, confirmOrder, getInfoUser, giveOrder, rejectOrder } from '../api/driverApi';
+const requestLocationPermission = async () => {
+    if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+                title: 'Location Permission',
+                message: 'This app requires access to your location.',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
+            },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } else {
+        const status = await Geolocation.requestAuthorization('whenInUse');
+        return status === 'granted';
+    }
+};
 
-const socket = io("http://192.168.55.147:3000");
 const MainScreen = () => {
     const navigation = useNavigation();
+    const [isLoading, setIsLoading] = useState(false);
     const [shipperLocation, setShipperLocation] = useState(null);
     const [driverId, setDriverId] = useState(null);
     const [restaurantLocation, setRestaurantLocation] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
-    const [route1, setRoute1] = useState([]);
-    const [route2, setRoute2] = useState([]);
+    const [route1, setRoute1] = useState();
+    const [route2, setRoute2] = useState();
     const [ordersNew, setOrdersNew] = useState();
+
     useEffect(() => {
-        const fetchDriverId = async () => {
-            await getInfoUser();
-            const id = await AsyncStorage.getItem('driverId');
-            setDriverId(id);
-        };
-        fetchDriverId();
-
-        socket.on("connect", () => {
-            console.log("Connected to the server:", socket.id);
-        });
-
-        socket.on("locationUpdated", (data) => {
-            console.log(data.message);
-        });
-
-        return () => {
-            socket.disconnect();
-        };
-    }, []);
-
-    const requestLocationPermission = async () => {
-        if (Platform.OS === 'android') {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                {
-                    title: 'Location Permission',
-                    message: 'This app requires access to your location.',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                },
-            );
-            return granted === PermissionsAndroid.RESULTS.GRANTED;
-        } else {
-            const status = await Geolocation.requestAuthorization('whenInUse');
-            return status === 'granted';
-        }
-    };
-    useEffect(() => {
-        if (route1.length > 0 || route2.length > 0) {
-            saveStateToStorage();
-        }
-    }, [route1, route2]);
-    useEffect(() => {
-        const watchShipperLocation = async () => {
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                console.log("Location permission not granted.");
-                return;
-            }
-
-            Geolocation.watchPosition(
-                position => {
-                    const { latitude, longitude } = position.coords;
-                    console.log("Location fetched:", latitude, longitude);
-                    setShipperLocation({ latitude, longitude });
-                },
-                error => console.error("Error fetching location:", error.message),
-                { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 }
-            );
-        }
-        watchShipperLocation();
-    }, [shipperLocation]);
-    useEffect(() => {
-        if (shipperLocation) {
-            socket.emit("updateLocation", {
-                driverId: driverId,
+        const socket = io('http://localhost:3000');
+        if (driverId && shipperLocation) {
+            socket.emit('updateLocation', {
+                driverId,
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
         }
+    }, [shipperLocation, driverId]);
+    useEffect(() => {
+        if (!driverId) return;
+
+        const socket = io('http://localhost:3000');
+
+        socket.on('connect', () => {
+            console.log('Connected to the server:', socket.id);
+            socket.emit('joinDriver', driverId);
+        });
+
+        socket.on('orderReceivedByDriver', (orders) => {
+            if (orders) {
+                console.log('Danh sách đơn hàng:', orders.orders);
+                setOrdersNew(orders.orders);
+            }
+        });
+        socket.on('ordersListOfDriver', (orders) => {
+            if (!ordersNew && orders.order_status != 'ORDER_CONFIRMED' && orders.order_status != 'ORDER_CANCELED')
+                setOrdersNew(orders)
+        });
+
+        socket.on('error', (error) => console.error('Lỗi socket:', error.message));
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [driverId]);
+    //Lây driverID
+    useEffect(() => {
+        const fetchDriverId = async () => {
+            try {
+                await getInfoUser();
+                const id = await AsyncStorage.getItem('driverId');
+                setDriverId(id);
+            } catch (error) {
+                console.error('Error fetching driver ID:', error);
+            }
+        };
+
+        fetchDriverId();
+    }, []);
+
+    //Vị trí driver
+    useEffect(() => {
+        const watchShipperLocation = async () => {
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                console.log('Location permission not granted.');
+                return;
+            }
+
+            Geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    console.log('Location fetched:', latitude, longitude);
+                    setShipperLocation({ latitude, longitude });
+                },
+                (error) => console.error('Error fetching location:', error.message),
+                { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 }
+            );
+        };
+
+        watchShipperLocation();
     }, [shipperLocation]);
 
-    // Lưu trạng thái vào AsyncStorage
-    const saveStateToStorage = async () => {
-        try {
-            console.log("Saving to storage:", route1, route2);
-            await AsyncStorage.setItem(
-                `appState`,
-                JSON.stringify({
-                    route1,
-                    route2,
-                })
-            );
-        } catch (error) {
-            console.error("Error saving state:", error);
-        }
-    };
-
-    // Khôi phục trạng thái từ AsyncStorage
-    const restoreStateFromStorage = async () => {
-        try {
-            const savedState = await AsyncStorage.getItem(`appState`);
-            if (savedState) {
-                const parsedState = JSON.parse(savedState);
-                console.log(parsedState)
-                setRoute1(parsedState.route1);
-                setRoute2(parsedState.route2);
-            }
-        } catch (error) {
-            console.error("Error restoring state:", error);
-        }
-    };
-
-    // Lấy driverId và khôi phục trạng thái
-    useEffect(() => {
-        const initialize = async () => {
-            await restoreStateFromStorage(); // Khôi phục trạng thái
-        };
-        initialize();
-    }, []); // Khôi phục khi driverId thay đổi
-    // Cập nhật route khi có đơn hàng
     useEffect(() => {
         if (ordersNew && shipperLocation && restaurantLocation && userLocation) {
             getRoute(shipperLocation, restaurantLocation, setRoute1);
             getRoute(restaurantLocation, userLocation, setRoute2);
-            saveStateToStorage();
         }
-    }, [shipperLocation]);
+    }, [ordersNew, shipperLocation, restaurantLocation, userLocation]);
+
     const getRoute = async (origin, destination, setRoute) => {
         try {
             const response = await axios.get(
                 `https://api.mapbox.com/directions/v5/mapbox/driving/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}?geometries=geojson&access_token=sk.eyJ1IjoibmdvY21hbmgxNjA3IiwiYSI6ImNtM2N5bzY5dDFxbDIyanIxbDEycXg0bGwifQ.M2rY0iFiThl6Crjp6kr_GQ`
             );
-
             const routeCoordinates = response.data.routes[0].geometry.coordinates.map(
-                point => ({ latitude: point[1], longitude: point[0] })
+                (point) => ({ latitude: point[1], longitude: point[0] })
             );
             setRoute(routeCoordinates);
         } catch (error) {
-            console.error("Error fetching route:", error);
+            console.error('Error fetching route:', error);
         }
     };
-    useEffect(() => {
-        let socket;
-        const initializeSocket = async () => {
-            socket = io('http://localhost:3000');
 
-            socket.on('connect', () => {
-                socket.emit('joinDriver', driverId);
-            });
-            // Nhận danh sách đơn hàng
-            socket.on('ordersListOfDriver', (orders) => {
-                console.log('Danh sách đơn hàng:', orders);
-                setOrdersNew(orders);
-                setRestaurantLocation({
-                    latitude: orders.Restaurant.address_x,
-                    longitude: orders.Restaurant.address_y
-                });
-            });
-
-            // Xử lý lỗi
-            socket.on('error', (error) => {
-                console.error('Lỗi socket:', error.message);
-                // setErrorMessage(error.message);
-            });
-
-
-            socket.on('error', (error) => {
-                console.log(error)
-            });
-        };
-
-        initializeSocket();
-
-        return () => {
-            socket?.disconnect();
-        };
-    }, []);
     const handlePress = () => {
         navigation.navigate("OrderDetail", { ordersNew })
     }
-
     const handleAccept = () => {
         const fetchAcceptOrder = async () => {
             const response = await acceptOrder(ordersNew.id);
@@ -200,30 +144,66 @@ const MainScreen = () => {
                     latitude: parseFloat(response.latitudeUser),
                     longitude: parseFloat(response.longtitudeUser),
                 };
-                setUserLocation(updatedUserLocation)
-                getRoute(shipperLocation, restaurantLocation, setRoute1);
-                getRoute(restaurantLocation, updatedUserLocation, setRoute2);
-                saveStateToStorage();
+                const updatedResLocation = {
+                    latitude: parseFloat(response.latitudeRes),
+                    longitude: parseFloat(response.longtitudeRes),
+                };
+                setUserLocation(updatedUserLocation);
+                setRestaurantLocation(updatedResLocation);
+                getRoute(shipperLocation, updatedResLocation, setRoute1);
+                getRoute(updatedResLocation, updatedUserLocation, setRoute2);
+                // Cập nhật trạng thái đơn hàng
+                setOrdersNew((prevOrders) => ({
+                    ...prevOrders,
+                    order_status: "DELIVERING",
+                }));
             } else {
                 console.error("Invalid location data:", response);
             }
         };
 
         fetchAcceptOrder();
+
     };
     const handleReject = () => {
         const fetchRejectOrder = async () => {
             const response = await rejectOrder(ordersNew.id);
-            setOrdersNew();
         }
         fetchRejectOrder();
+        setOrdersNew((prevOrders) => ({
+            ...prevOrders,
+            order_status: "ORDER_CANCELED",
+        }));
+        setOrdersNew();
+        setRoute1();
+        setRoute2();
+        setRestaurantLocation();
+        setUserLocation();
     }
     const handleComplete = () => {
         const fetchConfirmOrder = async () => {
             await confirmOrder(ordersNew.id);
-            setOrdersNew();
         }
         fetchConfirmOrder();
+        setOrdersNew((prevOrders) => ({
+            ...prevOrders,
+            order_status: "ORDER_CONFIRMED", // Thay đổi trạng thái thành "ACCEPTED"
+        }));
+        setOrdersNew();
+        setRoute1();
+        setRoute2();
+        setRestaurantLocation();
+        setUserLocation();
+    }
+    const handleGiveOrder = () => {
+        const fetchGiveOrder = async () => {
+            await giveOrder(ordersNew.id);
+        }
+        fetchGiveOrder();
+        setOrdersNew((prevOrders) => ({
+            ...prevOrders,
+            order_status: "GIVED ORDER", // Thay đổi trạng thái thành "ACCEPTED"
+        }));
     }
     return (
         <View style={styles.container}>
@@ -269,7 +249,7 @@ const MainScreen = () => {
                 )}
 
                 {/* Route từ shipper đến nhà hàng */}
-                {ordersNew && route1.length > 0 && (
+                {ordersNew && route1 && (
                     <MapboxGL.ShapeSource id="route1" shape={{
                         type: 'Feature',
                         geometry: {
@@ -282,7 +262,7 @@ const MainScreen = () => {
                 )}
 
                 {/* Route từ nhà hàng đến user */}
-                {ordersNew && route2.length > 0 && (
+                {ordersNew && route2 && (
                     <MapboxGL.ShapeSource id="route2" shape={{
                         type: 'Feature',
                         geometry: {
@@ -328,24 +308,35 @@ const MainScreen = () => {
                             ) : ordersNew.order_status === "DELIVERING" ? (
                                 <TouchableOpacity
                                     style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
-                                    onPress={() => handleComplete()}
+                                    onPress={() => handleGiveOrder()}
                                 >
-                                    <Text style={styles.buttonText}>Complete</Text>
+                                    <Text style={styles.buttonText}>Nhận đơn hàng</Text>
                                 </TouchableOpacity>
                             ) : (
-                                <View>
-                                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Order Completed</Text>
-                                </View>
-                            )}
+                                ordersNew.order_status === "GIVED ORDER" ? (
+                                    <TouchableOpacity
+                                        style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
+                                        onPress={() => handleComplete()}
+                                    >
+                                        <Text style={styles.buttonText}>Hoàn tất</Text>
+                                    </TouchableOpacity>
+                                ) : ordersNew.order_status === "ORDER_CANCELED" ? (
+                                    <View style={styles.noOrderContainer}>
+                                        <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
+                                    </View>
+                                ) : (
+                                    <Text>Giao hàng thành công</Text>
+                                ))}
                         </View>
 
                     </>) : (
                     <View style={styles.noOrderContainer}>
                         <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
                     </View>
-                )}
-            </View>
-        </View>
+                )
+                }
+            </View >
+        </View >
     );
 };
 

@@ -234,7 +234,51 @@ const getInfoUser = async () => {
                 }
             }
         );
-        AsyncStorage.setItem('driverId', response.data.metadata.Driver.id.toString())
+        await AsyncStorage.setItem('driverId', response.data.metadata.Driver.id.toString())
+        return response.data.metadata;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        throw new Error('Failed to fetch user info');
+    }
+}
+const giveOrder = async (orderId) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`/driver/give/${orderId}`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        return response.data.metadata;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        throw new Error('Failed to fetch user info');
+    }
+}
+const getOrder = async (driverId) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`/driver/${driverId}/order`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
         return response.data.metadata;
     } catch (error) {
         console.error('Error fetching user info:', error);
@@ -242,4 +286,4 @@ const getInfoUser = async () => {
     }
 }
 
-export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser };
+export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder };

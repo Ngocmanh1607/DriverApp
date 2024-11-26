@@ -64,10 +64,6 @@ const OrderDetailScreen = ({ route }) => {
             {/* Payment Information */}
             <View style={styles.paymentInfoContainer}>
                 <Text style={styles.paymentMethod}>Trả qua {ordersNew.order_pay}</Text>
-                <View style={styles.paymentContainer}>
-                    <Text style={styles.paymentText}>Tạm tính: </Text>
-                    <Text style={styles.orderTotal}>{formatPrice(ordersNew.price)}</Text>
-                </View>
                 {/* <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Chi tiết thanh toán</Text> */}
                 {/* Tạm tính */}
                 <View style={[styles.paymentContainer, { marginTop: 10 }]}>

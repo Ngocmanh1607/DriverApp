@@ -8,6 +8,8 @@ import MainScreen from '../screens/MainScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
 import Profile from '../screens/Profile';
 import RegisterInf from '../screens/RegisterInf';
+import HeaderSwitch from '../components/HeaderSwitch';
+import OrderScreen from '../screens/OrderScreen';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -22,7 +24,17 @@ const MainDrawer = () => (
         initialRouteName="Home"
         screenOptions={{ headerShown: true }}
     >
-        <Drawer.Screen name="Home" component={MainScreen} />
+        <Drawer.Screen
+            name="Home"
+            component={MainScreen}
+            options={({ navigation }) => ({
+                headerRight: () => <HeaderSwitch />,
+            })}
+        />
+        <Drawer.Screen
+            name="Đơn đã giao"
+            component={OrderScreen}
+        />
         <Drawer.Screen
             name="Profile"
             component={Profile}
