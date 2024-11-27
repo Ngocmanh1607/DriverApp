@@ -3,8 +3,7 @@ import apiClient from "./apiClient";
 import fetchFcmToken from "../utils/fcmToken";
 const apiKey = '123';
 const signupApi = async (email, password) => {
-    // const fcmToken = await fetchFcmToken();
-    const fcmToken = 1
+    const fcmToken = await fetchFcmToken();
     const response = await apiClient.post(
         "/user/signup",
         { email, password, fcmToken, role: "driver" },
@@ -14,7 +13,6 @@ const signupApi = async (email, password) => {
             }
         }
     );
-
     const { message, metadata } = response.data;
     if (!message) {
         console.error('Error message:', message);

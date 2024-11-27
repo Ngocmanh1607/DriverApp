@@ -30,6 +30,7 @@ const Profile = () => {
                 phone_number: response.phone_number,
                 date: response.date.split('T')[0],
             })
+            setImageUri(response.image)
             setBike({
                 license_plate: response.Driver.license_plate,
                 name: response.Driver.car_name,
@@ -39,7 +40,7 @@ const Profile = () => {
         fetchInfoUser();
     }, [])
     const [isLoading, setIsLoading] = useState(false);
-    const [imageUri, setImageUri] = useState(userInfo.image);
+    const [imageUri, setImageUri] = useState();
 
     const openImagePicker = () => {
         const options = {
@@ -66,16 +67,20 @@ const Profile = () => {
     const handleSaveChanges = async () => {
         if (isEditting) {
             try {
+                const profile = userInfo;
                 setIsLoading(true);
-                const url = await uploadFirebase(imageUri);
-                if (!url) {
-                    Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
-                    return;
+                console.log(imageUri, userInfo.image)
+                if (imageUri != userInfo.image) {
+                    const url = await uploadFirebase(imageUri);
+                    if (!url) {
+                        Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+                        return;
+                    }
+                    profile = {
+                        ...userInfo,
+                        image: url,
+                    };
                 }
-                const profile = {
-                    ...userInfo,
-                    image: url,
-                };
                 const response = await updateDriver(profile);
                 await updateLicenseDriver(bike)
                 if (response) {
@@ -109,8 +114,8 @@ const Profile = () => {
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <View style={styles.avatarContainer}>
                             <TouchableOpacity style={styles.imageContainer} onPress={openImagePicker}>
-                                {userInfo.image ? (
-                                    <Image source={{ uri: userInfo.image }} style={styles.profileImage} />
+                                {imageUri ? (
+                                    <Image source={{ uri: imageUri }} style={styles.profileImage} />
                                 ) : (<FontAwesome name="user" size={60} color="black" style={{ paddingVertical: 6 }} />)}
                             </TouchableOpacity>
                         </View>

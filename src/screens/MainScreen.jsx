@@ -25,7 +25,7 @@ const requestLocationPermission = async () => {
         return status === 'granted';
     }
 };
-
+const socket = io('http://localhost:3000');
 const MainScreen = () => {
     const navigation = useNavigation();
     const [isLoading, setIsLoading] = useState(false);
@@ -33,12 +33,11 @@ const MainScreen = () => {
     const [driverId, setDriverId] = useState(null);
     const [restaurantLocation, setRestaurantLocation] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
-    const [route1, setRoute1] = useState();
-    const [route2, setRoute2] = useState();
+    const [route1, setRoute1] = useState([]);
+    const [route2, setRoute2] = useState([]);
     const [ordersNew, setOrdersNew] = useState();
 
     useEffect(() => {
-        const socket = io('http://localhost:3000');
         if (driverId && shipperLocation) {
             socket.emit('updateLocation', {
                 driverId,
@@ -49,8 +48,6 @@ const MainScreen = () => {
     }, [shipperLocation, driverId]);
     useEffect(() => {
         if (!driverId) return;
-
-        const socket = io('http://localhost:3000');
 
         socket.on('connect', () => {
             console.log('Connected to the server:', socket.id);
@@ -74,6 +71,7 @@ const MainScreen = () => {
             socket.disconnect();
         };
     }, [driverId]);
+
     //Lây driverID
     useEffect(() => {
         const fetchDriverId = async () => {
@@ -91,6 +89,8 @@ const MainScreen = () => {
 
     //Vị trí driver
     useEffect(() => {
+        let watchId;
+
         const watchShipperLocation = async () => {
             const hasPermission = await requestLocationPermission();
             if (!hasPermission) {
@@ -98,7 +98,8 @@ const MainScreen = () => {
                 return;
             }
 
-            Geolocation.watchPosition(
+            // Bắt đầu theo dõi vị trí
+            watchId = Geolocation.watchPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     console.log('Location fetched:', latitude, longitude);
@@ -110,14 +111,64 @@ const MainScreen = () => {
         };
 
         watchShipperLocation();
-    }, [shipperLocation]);
-
+        return () => {
+            if (watchId !== null) {
+                Geolocation.clearWatch(watchId);
+            }
+        };
+    }, []);
     useEffect(() => {
         if (ordersNew && shipperLocation && restaurantLocation && userLocation) {
             getRoute(shipperLocation, restaurantLocation, setRoute1);
             getRoute(restaurantLocation, userLocation, setRoute2);
         }
     }, [ordersNew, shipperLocation, restaurantLocation, userLocation]);
+    //Lưu vào store
+    useEffect(() => {
+        const saveUpdatedRoutes = async () => {
+            try {
+                console.log('Saving updated routes to storage:', route1, route2);
+                await AsyncStorage.setItem(
+                    'routes',
+                    JSON.stringify({ route1, route2 })
+                );
+            } catch (error) {
+                console.error('Error saving updated routes to storage:', error);
+            }
+        };
+        if (route1.length > 0 || route2.length > 0) {
+            saveUpdatedRoutes();
+        }
+    }, [route1, route2]);
+    //Khôi phục
+    useEffect(() => {
+        const restoreRoutesFromStorage = async () => {
+            try {
+                const savedRoutes = await AsyncStorage.getItem('routes');
+                if (savedRoutes) {
+                    const { route1: savedRoute1 = [], route2: savedRoute2 = [] } = JSON.parse(savedRoutes);
+                    console.log('Restored routes from storage:', savedRoute1, savedRoute2);
+                    setRoute1(Array.isArray(savedRoute1) ? savedRoute1 : []);
+                    setRoute2(Array.isArray(savedRoute2) ? savedRoute2 : []);
+                } else {
+                    console.log('No saved routes found in storage');
+                }
+            } catch (error) {
+                console.error('Error restoring routes from storage:', error.message);
+            }
+        };
+
+        restoreRoutesFromStorage();
+    }, []);
+
+    const clearRoutesFromStorage = async () => {
+        try {
+            await AsyncStorage.removeItem('routes');
+            console.log('Routes cleared from storage');
+        } catch (error) {
+            console.error('Error clearing routes from storage:', error);
+        }
+    };
 
     const getRoute = async (origin, destination, setRoute) => {
         try {
@@ -161,9 +212,7 @@ const MainScreen = () => {
                 console.error("Invalid location data:", response);
             }
         };
-
         fetchAcceptOrder();
-
     };
     const handleReject = () => {
         const fetchRejectOrder = async () => {
@@ -187,11 +236,12 @@ const MainScreen = () => {
         fetchConfirmOrder();
         setOrdersNew((prevOrders) => ({
             ...prevOrders,
-            order_status: "ORDER_CONFIRMED", // Thay đổi trạng thái thành "ACCEPTED"
+            order_status: "ORDER_CONFIRMED",
         }));
+        clearRoutesFromStorage();
         setOrdersNew();
-        setRoute1();
-        setRoute2();
+        setRoute1([]);
+        setRoute2([]);
         setRestaurantLocation();
         setUserLocation();
     }
@@ -236,7 +286,6 @@ const MainScreen = () => {
                         </View>
                     </MapboxGL.PointAnnotation>
                 )}
-
                 {ordersNew && userLocation && (
                     <MapboxGL.PointAnnotation
                         id="customMarker"
