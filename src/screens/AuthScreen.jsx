@@ -54,7 +54,7 @@ const AuthScreen = () => {
     return (
         <View style={styles.container}>
             <View style={styles.topImageContainer}>
-                <Image source={require("../access/Images/background2.png")} style={styles.topImage} />
+                <Image source={require("../access/Images/Shipper.webp")} style={styles.topImage} />
             </View>
             <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }] }]}>
                 <TabScreen />

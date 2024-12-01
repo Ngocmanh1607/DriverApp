@@ -3,10 +3,10 @@ import { View, StyleSheet, Text, TouchableOpacity, Platform, PermissionsAndroid 
 import MapboxGL from '@rnmapbox/maps';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
-import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { acceptOrder, confirmOrder, getInfoUser, giveOrder, rejectOrder } from '../api/driverApi';
+import socket from '../api/socket';
 const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
@@ -25,33 +25,46 @@ const requestLocationPermission = async () => {
         return status === 'granted';
     }
 };
-const socket = io('http://localhost:3000');
 const MainScreen = () => {
     const navigation = useNavigation();
     const [isLoading, setIsLoading] = useState(false);
     const [shipperLocation, setShipperLocation] = useState(null);
-    const [driverId, setDriverId] = useState(null);
+    const [driver_id, setDriverId] = useState(null);
     const [restaurantLocation, setRestaurantLocation] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const [route1, setRoute1] = useState([]);
     const [route2, setRoute2] = useState([]);
     const [ordersNew, setOrdersNew] = useState();
-
+    //Lây driverID
     useEffect(() => {
-        if (driverId && shipperLocation) {
+        const fetchDriverId = async () => {
+            try {
+                await getInfoUser();
+                const id = await AsyncStorage.getItem('driverId');
+                setDriverId(id);
+                socket.connect();
+            } catch (error) {
+                console.error('Error fetching driver ID:', error);
+            }
+        };
+
+        fetchDriverId();
+    }, []);
+    useEffect(() => {
+        if (driver_id && shipperLocation) {
+            const driverId = driver_id;
             socket.emit('updateLocation', {
                 driverId,
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
         }
-    }, [shipperLocation, driverId]);
+    }, [shipperLocation, driver_id]);
     useEffect(() => {
-        if (!driverId) return;
-
+        if (!driver_id) return;
         socket.on('connect', () => {
             console.log('Connected to the server:', socket.id);
-            socket.emit('joinDriver', driverId);
+            socket.emit('joinDriver', driver_id);
         });
 
         socket.on('orderReceivedByDriver', (orders) => {
@@ -68,24 +81,11 @@ const MainScreen = () => {
         socket.on('error', (error) => console.error('Lỗi socket:', error.message));
 
         return () => {
-            socket.disconnect();
+            socket.off('connect');
+            socket.off('disconnect');
+            socket.off('reconnect');
         };
-    }, [driverId]);
-
-    //Lây driverID
-    useEffect(() => {
-        const fetchDriverId = async () => {
-            try {
-                await getInfoUser();
-                const id = await AsyncStorage.getItem('driverId');
-                setDriverId(id);
-            } catch (error) {
-                console.error('Error fetching driver ID:', error);
-            }
-        };
-
-        fetchDriverId();
-    }, []);
+    }, [driver_id]);
 
     //Vị trí driver
     useEffect(() => {
