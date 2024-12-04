@@ -283,5 +283,29 @@ const getOrder = async (driverId) => {
         throw new Error('Failed to fetch user info');
     }
 }
+const changeStatus = async (driver_id) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.put(`/driver/${driver_id}`,
+            {
 
-export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder };
+            },
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        return response.data.metadata;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        throw new Error('Failed to fetch user info');
+    }
+}
+export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder, changeStatus };

@@ -13,6 +13,7 @@ const HeaderSwitch = () => {
             try {
                 await getInfoUser();
                 const id = await AsyncStorage.getItem('driverId');
+                console.log(id)
                 setDriverId(id);
             } catch (error) {
                 console.error("Lỗi khi lấy driverId:", error);
