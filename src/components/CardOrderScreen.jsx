@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native'
 const CardOrderScreen = ({ item }) => {
     const navigation = useNavigation();
     const handlePress = () => {
-        navigation.navigate('OrderDetail', { ordersNew: item })
+        // navigation.navigate('OrderDetail', { ordersNew: item })
     }
     return (
         <TouchableOpacity style={styles.orderInfo} onPress={() => handlePress()}>

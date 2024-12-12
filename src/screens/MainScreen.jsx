@@ -214,21 +214,19 @@ const MainScreen = () => {
         };
         fetchAcceptOrder();
     };
-    const handleReject = () => {
-        const fetchRejectOrder = async () => {
-            const response = await rejectOrder(ordersNew.id);
+    const handleReject = async () => {
+        try {
+            await rejectOrder(ordersNew.id);
+            setOrdersNew(null);
+            setRoute1([]);
+            setRoute2([]);
+            setRestaurantLocation(null);
+            setUserLocation(null);
+        } catch (error) {
+            console.error("Error rejecting the order:", error);
         }
-        fetchRejectOrder();
-        setOrdersNew((prevOrders) => ({
-            ...prevOrders,
-            order_status: "ORDER_CANCELED",
-        }));
-        setOrdersNew();
-        setRoute1();
-        setRoute2();
-        setRestaurantLocation();
-        setUserLocation();
-    }
+    };
+
     const handleComplete = () => {
         const fetchConfirmOrder = async () => {
             await confirmOrder(ordersNew.id);

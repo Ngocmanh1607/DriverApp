@@ -10,7 +10,7 @@ import Snackbar from 'react-native-snackbar';
 import { getInfoUser, updateDriver, updateLicenseDriver } from '../api/driverApi';
 const Profile = () => {
     const navigation = useNavigation();
-    const [isEditting, setIsEditting] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
     const [userInfo, setUserInfo] = useState({
         name: '',
         image: '',
@@ -65,43 +65,75 @@ const Profile = () => {
     };
 
     const handleSaveChanges = async () => {
-        if (isEditting) {
-            try {
-                const profile = userInfo;
-                setIsLoading(true);
-                console.log(imageUri, userInfo.image)
-                if (imageUri != userInfo.image) {
-                    const url = await uploadFirebase(imageUri);
-                    if (!url) {
-                        Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
-                        return;
-                    }
-                    profile = {
-                        ...userInfo,
-                        image: url,
-                    };
-                }
-                const response = await updateDriver(profile);
-                await updateLicenseDriver(bike)
-                if (response) {
-                    Snackbar.show({
-                        text: 'Thông tin của bạn đã được cập nhật.',
-                        duration: Snackbar.LENGTH_SHORT,
-                    });
-                    navigation.navigate('MainDrawer')
-                }
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
-            } finally {
-                setIsLoading(false);
-                setIsEditting(false)
+        if (isEditing) {
+            // Validate data
+            if (!userInfo.name.trim()) {
+                Alert.alert('Lỗi', 'Tên không được để trống.');
+                return;
             }
-        }
-        else {
-            setIsEditting(true)
+            if (!userInfo.phone_number.trim() || !/^\d{10}$/.test(userInfo.phone_number)) {
+                Alert.alert('Lỗi', 'Số điện thoại không hợp lệ.');
+                return;
+            }
+            if (!bike.license_plate.trim()) {
+                Alert.alert('Lỗi', 'Biển số xe không được để trống.');
+                return;
+            }
+            if (!bike.name.trim()) {
+                Alert.alert('Lỗi', 'Tên xe không được để trống.');
+                return;
+            }
+
+            // Show confirmation dialog
+            Alert.alert(
+                'Xác nhận',
+                'Bạn có chắc chắn muốn lưu thay đổi?',
+                [
+                    { text: 'Hủy', style: 'cancel' },
+                    {
+                        text: 'Lưu',
+                        onPress: async () => {
+                            try {
+                                const profile = { ...userInfo };
+                                setIsLoading(true);
+                                console.log(imageUri, userInfo.image);
+
+                                // Upload image if it has changed
+                                if (imageUri !== userInfo.image) {
+                                    const url = await uploadFirebase(imageUri);
+                                    if (!url) {
+                                        Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+                                        return;
+                                    }
+                                    profile.image = url;
+                                }
+
+                                // Update profile and bike info
+                                const response = await updateDriver(profile);
+                                await updateLicenseDriver(bike);
+                                if (response) {
+                                    Snackbar.show({
+                                        text: 'Thông tin của bạn đã được cập nhật.',
+                                        duration: Snackbar.LENGTH_SHORT,
+                                    });
+                                    navigation.navigate('MainDrawer');
+                                }
+                            } catch (error) {
+                                console.error('Error updating profile:', error);
+                                Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
+                            } finally {
+                                setIsLoading(false);
+                                setIsEditing(false);
+                            }
+                        },
+                    },
+                ],
+            );
+        } else {
+            setIsEditing(true);
         }
     };
+
 
     return (
         <View style={styles.container}>
@@ -125,34 +157,34 @@ const Profile = () => {
                             <TextInput
                                 style={styles.input}
                                 value={userInfo.name}
-                                editable={isEditting}
+                                editable={isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, name: text })}
                             />
                             <Text style={styles.label}>Số điện thoại:</Text>
                             <TextInput
                                 style={styles.input}
                                 value={userInfo.phone_number.toString()}
-                                editable={isEditting}
+                                editable={isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, phone_number: text })}
                             />
                             <Text style={styles.label}>Năm sinh:</Text>
                             <TextInput
                                 style={styles.input}
                                 value={userInfo.date}
-                                editable={isEditting}
+                                editable={isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, date: text })}
                             />
                             <Text style={styles.label}>Hiệu xe:</Text>
                             <TextInput
                                 style={styles.input}
-                                editable={isEditting}
+                                editable={isEditing}
                                 value={bike.name}
                                 onChangeText={(text) => setBike({ ...bike, name: text })}
                             />
                             <Text style={styles.label}>Biển số xe: </Text>
                             <TextInput
                                 style={styles.input}
-                                editable={isEditting}
+                                editable={isEditing}
                                 value={bike.license_plate}
                                 onChangeText={(text) => setBike({ ...bike, license_plate: text })}
                             />
@@ -160,8 +192,8 @@ const Profile = () => {
                         </View>
 
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditting ? '#33CC66' : '#FF0000' }]} onPress={handleSaveChanges}>
-                                <Text style={styles.buttonText}>{isEditting ? 'Lưu' : 'Chỉnh sửa'}</Text>
+                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={handleSaveChanges}>
+                                <Text style={styles.buttonText}>{isEditing ? 'Lưu' : 'Chỉnh sửa'}</Text>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
