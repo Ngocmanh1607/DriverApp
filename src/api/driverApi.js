@@ -3,10 +3,11 @@ import apiClient from "./apiClient";
 import fetchFcmToken from "../utils/fcmToken";
 const apiKey = '123';
 const signupApi = async (email, password) => {
-    const fcmToken = await fetchFcmToken();
+    // const fcmToken = await fetchFcmToken();
+
     const response = await apiClient.post(
         "/user/signup",
-        { email, password, fcmToken, role: "driver" },
+        { email, password, fcmToken: '123', role: "driver" },
         {
             headers: {
                 "x-api-key": apiKey

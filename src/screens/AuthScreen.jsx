@@ -10,8 +10,8 @@ const TabScreen = () => {
     const layout = useWindowDimensions();
     const [index, setIndex] = useState(0);
     const [routes] = useState([
-        { key: 'login', title: 'Login' },
-        { key: 'signup', title: 'Sign Up' },
+        { key: 'login', title: 'Đăng nhập' },
+        { key: 'signup', title: 'Đăng kí' },
     ]);
 
     const renderScene = SceneMap({

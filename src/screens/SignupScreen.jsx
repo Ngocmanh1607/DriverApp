@@ -4,14 +4,15 @@ import Fontisto from 'react-native-vector-icons/Fontisto';
 import PasswordInput from '../components/PasswordInput';
 import { useNavigation } from '@react-navigation/native';
 import { signupApi } from '../api/driverApi';
-
+import styles from '../access/css/SignupStyle';
+import Loading from '../components/Loading';
 const SignupScreen = () => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false); // Thêm trạng thái loading
+    const [loading, setLoading] = useState(false);
 
     const validate = () => {
         let valid = true;
@@ -20,29 +21,29 @@ const SignupScreen = () => {
         // Validate email
         if (!email) {
             valid = false;
-            errors.email = 'Email is required';
+            errors.email = 'Email là bắt buộc';
         } else if (!/\S+@\S+\.\S+/.test(email)) {
             valid = false;
-            errors.email = 'Email address is invalid';
+            errors.email = 'Địa chỉ email không chính xác';
         }
 
         // Validate password
         if (!password) {
             valid = false;
             console.log(password)
-            errors.password = 'Password is required';
+            errors.password = 'Mật khẩu là bắt buộc';
         } else if (password.length < 6) {
             valid = false;
-            errors.password = 'Password must be at least 6 characters';
+            errors.password = 'Mật khẩu chứa ít nhất 6 kí tự';
         }
 
         // Validate confirmPassword
         if (!confirmPassword) {
             valid = false;
-            errors.confirmPassword = 'Confirm Password is required';
+            errors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
         } else if (password !== confirmPassword) {
             valid = false;
-            errors.confirmPassword = 'Passwords do not match';
+            errors.confirmPassword = 'Xác nhận mật khẩu không khớp';
         }
 
         setErrors(errors);
@@ -54,11 +55,9 @@ const SignupScreen = () => {
             setLoading(true);
             try {
                 const response = await signupApi(email, password);
-                console.log('Signup success:', response);
                 navigation.navigate('Đăng kí thông tin');
             } catch (error) {
-                console.error('Signup failed:', error);
-                setErrors({ apiError: 'Signup failed. Please try again later.' });
+                setErrors({ apiError: 'Đăng kí thất bại. Vui lòng thử lại' });
             } finally {
                 setLoading(false);
             }
@@ -66,6 +65,7 @@ const SignupScreen = () => {
     };
 
     return (
+        <View style={styles.container}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
                 <View style={styles.inputSignContainer}>
@@ -82,70 +82,26 @@ const SignupScreen = () => {
                 <PasswordInput
                     value={password}
                     onChangeText={setPassword}
-                    placeholderText="Password"
+                    placeholderText="Mật khẩu"
                 />
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                 <PasswordInput
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    placeholderText="Confirm Password"
+                    placeholderText="Xác nhận mật khẩu"
                 />
                 {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
 
                 {errors.apiError && <Text style={styles.errorText}>{errors.apiError}</Text>}
 
-                <TouchableOpacity style={styles.loginButtonContainer} onPress={handleSignUp} disabled={loading}>
-                    <Text style={styles.textLogin}>{loading ? 'Signing Up...' : 'Sign Up'}</Text>
+                <TouchableOpacity style={styles.loginButtonContainer} onPress={handleSignUp} >
+                    <Text style={styles.textLogin}> Đăng kí</Text>
                 </TouchableOpacity>
             </View>
         </TouchableWithoutFeedback>
+        {loading&& <Loading/>}
+        </View>
     );
 }
 
 export default SignupScreen;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginTop: 10
-    },
-    inputSignContainer: {
-        backgroundColor: '#FFFFFF',
-        flexDirection: 'row',
-        borderRadius: 10,
-        marginHorizontal: 40,
-        marginVertical: 10,
-        elevation: 10,
-        alignItems: 'center',
-        height: 50,
-    },
-    inputIcon: {
-        marginLeft: 15,
-        marginRight: 5,
-    },
-    textInput: {
-        flex: 1,
-        color: "#222222"
-    },
-    loginButtonContainer: {
-        width: '70%',
-        height: 50,
-        backgroundColor: "#FF0000",
-        alignItems: 'center',
-        justifyContent: 'center',
-        alignSelf: 'center',
-        marginVertical: 20,
-        borderRadius: 10,
-        elevation: 5
-    },
-    textLogin: {
-        color: 'white',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    errorText: {
-        marginStart: 50,
-        color: 'red',
-        fontSize: 14
-    },
-});
