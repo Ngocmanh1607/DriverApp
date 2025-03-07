@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Snackbar from 'react-native-snackbar';
 import { updateDriver, updateLicenseDriver } from '../api/driverApi';
+import TextInputOutlined from '../../node_modules/react-native-paper/lib/module/components/TextInput/TextInputOutlined';
 const RegisterInf = () => {
     const [userInfo, setUserInfo] = useState({
         name: '',
@@ -154,35 +155,39 @@ const RegisterInf = () => {
                         </View>
 
                         <View style={styles.infoContainer}>
-                            <Text style={styles.label}>Tên:</Text>
                             <TextInput
-                                mode='flat'
+                                mode='outlined'
+                                label={'Tên'}
                                 style={styles.input}
                                 value={userInfo.name}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, name: text })}
                             />
-                            <Text style={styles.label}>Số điện thoại:</Text>
                             <TextInput
                                 style={styles.input}
+                                mode='outlined'
+                                label={'Số điện thoại'}
                                 value={userInfo.phone_number.toString()}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, phone_number: text })}
                             />
-                            <Text style={styles.label}>Năm sinh:</Text>
                             <TextInput
                                 placeholder='dd-mm-yyyy'
                                 style={styles.input}
+                                mode='outlined'
+                                label={'Ngày-tháng-năm sinh'}
                                 value={userInfo.date}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, date: text })}
                             />
-                            <Text style={styles.label}>Hiệu xe:</Text>
                             <TextInput
                                 style={styles.input}
                                 value={bike.name}
+                                mode='outlined'
+                                label={'Tên loại xe'}
                                 onChangeText={(text) => setBike({ ...bike, name: text })}
                             />
-                            <Text style={styles.label}>Biển số xe: </Text>
                             <TextInput
                                 style={styles.input}
+                                mode='outlined'
+                                label={'Biển số xe'}
                                 value={bike.license_plate}
                                 onChangeText={(text) => setBike({ ...bike, license_plate: text })}
                             />
@@ -207,80 +212,55 @@ export default RegisterInf;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F8F8',
-    },
-    header: {
-        backgroundColor: '#FF6347',
-        paddingVertical: 20,
-        paddingHorizontal: 15,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    headerText: {
-        fontSize: 20,
-        color: '#fff',
-        fontWeight: 'bold',
+        backgroundColor: '#F9F9F9',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     avatarContainer: {
-        backgroundColor: '#FFF',
+        alignSelf: 'center',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    imageContainer: {
         width: 120,
         height: 120,
-        marginTop: 10,
+        borderRadius: 15,
+        borderWidth: 3,
+        borderColor: '#f00',
         justifyContent: 'center',
         alignItems: 'center',
-        alignSelf: 'center',
-        borderRadius: 60,
-        borderWidth: 3,
-        borderColor: '#FF0000',
-        elevation: 5
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+        elevation: 5,
     },
-    avatar: {
-        width: 120,
-        height: 120,
+    profileImage: {
+        width: '100%',
+        height: '100%',
         borderRadius: 60,
-        borderColor: '#FF6347',
-        borderWidth: 2,
-    },
-    editAvatar: {
-        position: 'absolute',
-        bottom: 0,
-        right: 10,
-        backgroundColor: '#FF0000',
-        padding: 5,
-        borderRadius: 15,
     },
     infoContainer: {
-        paddingHorizontal: 20,
-        marginTop: 20,
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
+        backgroundColor: '#FFF',
+        padding: 15,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 3,
     },
     input: {
-        backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 8,
+        backgroundColor: '#FFF',
+        fontSize: 16,
         marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#ddd',
     },
     buttonContainer: {
         marginTop: 20,
-        paddingHorizontal: 20,
     },
     saveButton: {
-        backgroundColor: '#FF0000',
-        paddingVertical: 12,
+        backgroundColor: '#f00',
+        paddingVertical: 14,
         borderRadius: 8,
         alignItems: 'center',
-        marginBottom: 10,
-    },
-    profileImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+        elevation: 3,
     },
     buttonText: {
         color: '#fff',

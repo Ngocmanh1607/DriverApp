@@ -66,7 +66,7 @@ const ReviewScreen = () => {
                             </View>
                         ))}
                     </View>
-                </View>˚
+                </View>
     
                 {/* Danh sách bình luận */}
                 <FlatList 

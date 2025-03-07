@@ -197,7 +197,7 @@ const Profile = () => {
                             </TouchableOpacity>
                         </View>
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={navigation.navigate('Review')}>
+                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={()=>{navigation.navigate('Review')}}>
                                 <Text style={styles.buttonText}>Review</Text>
                             </TouchableOpacity>
                         </View>
