@@ -11,7 +11,7 @@ const TabScreen = () => {
     const [index, setIndex] = useState(0);
     const [routes] = useState([
         { key: 'login', title: 'Đăng nhập' },
-        { key: 'signup', title: 'Đăng kí' },
+        { key: 'signup', title: 'Đăng ký' },
     ]);
 
     const renderScene = SceneMap({

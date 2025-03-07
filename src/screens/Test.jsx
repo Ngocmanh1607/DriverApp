@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import { TextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadUserImage } from '../utils/firebaseUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Snackbar from 'react-native-snackbar';
-import { getInfoUser, updateDriver, updateLicenseDriver } from '../api/driverApi';
-const Profile = () => {
-    const navigation = useNavigation();
-    const [isEditing, setIsEditing] = useState(false)
+import { updateDriver, updateLicenseDriver } from '../api/driverApi';
+const RegisterInf = () => {
     const [userInfo, setUserInfo] = useState({
         name: '',
         image: '',
@@ -21,26 +20,8 @@ const Profile = () => {
         license_plate: '',
         name: ''
     })
-    useEffect(() => {
-        const fetchInfoUser = async () => {
-            const response = await getInfoUser();
-            setUserInfo({
-                name: response.name,
-                image: response.image,
-                phone_number: response.phone_number,
-                date: response.date.split('T')[0],
-            })
-            setImageUri(response.image)
-            setBike({
-                license_plate: response.Driver.license_plate,
-                name: response.Driver.car_name,
-            })
-            console.log(response)
-        }
-        fetchInfoUser();
-    }, [])
     const [isLoading, setIsLoading] = useState(false);
-    const [imageUri, setImageUri] = useState();
+    const [imageUri, setImageUri] = useState(userInfo.image);
 
     const openImagePicker = () => {
         const options = {
@@ -63,77 +44,97 @@ const Profile = () => {
             return null;
         }
     };
-
-    const handleSaveChanges = async () => {
-        if (isEditing) {
-            // Validate data
-            if (!userInfo.name.trim()) {
-                Alert.alert('Lỗi', 'Tên không được để trống.');
-                return;
-            }
-            if (!userInfo.phone_number.trim() || !/^\d{10}$/.test(userInfo.phone_number)) {
-                Alert.alert('Lỗi', 'Số điện thoại không hợp lệ.');
-                return;
-            }
-            if (!bike.license_plate.trim()) {
-                Alert.alert('Lỗi', 'Biển số xe không được để trống.');
-                return;
-            }
-            if (!bike.name.trim()) {
-                Alert.alert('Lỗi', 'Tên xe không được để trống.');
-                return;
-            }
-
-            // Show confirmation dialog
-            Alert.alert(
-                'Xác nhận',
-                'Bạn có chắc chắn muốn lưu thay đổi?',
-                [
-                    { text: 'Hủy', style: 'cancel' },
-                    {
-                        text: 'Lưu',
-                        onPress: async () => {
-                            try {
-                                const profile = { ...userInfo };
-                                setIsLoading(true);
-                                console.log(imageUri, userInfo.image);
-
-                                // Upload image if it has changed
-                                if (imageUri !== userInfo.image) {
-                                    const url = await uploadFirebase(imageUri);
-                                    if (!url) {
-                                        Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
-                                        return;
-                                    }
-                                    profile.image = url;
-                                }
-
-                                // Update profile and bike info
-                                const response = await updateDriver(profile);
-                                await updateLicenseDriver(bike);
-                                if (response) {
-                                    Snackbar.show({
-                                        text: 'Thông tin của bạn đã được cập nhật.',
-                                        duration: Snackbar.LENGTH_SHORT,
-                                    });
-                                    navigation.navigate('MainDrawer');
-                                }
-                            } catch (error) {
-                                console.error('Error updating profile:', error);
-                                Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
-                            } finally {
-                                setIsLoading(false);
-                                setIsEditing(false);
-                            }
-                        },
-                    },
-                ],
-            );
-        } else {
-            setIsEditing(true);
-        }
+    // Validate định dạng số điện thoại (ví dụ: Việt Nam)
+    const validatePhoneNumber = (phoneNumber) => {
+        const phoneRegex = /^(\+84|0)\d{9}$/; // Ví dụ: +84 hoặc 0 theo sau là 9 số
+        return phoneRegex.test(phoneNumber);
     };
 
+    // Validate ngày tháng năm sinh
+    const validateDate = (date) => {
+        const dateRegex = /^(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4})$/; // Định dạng ngày: dd-mm-yyyy
+        return dateRegex.test(date);
+    };
+    const handleSaveChanges = async () => {
+        // 1. Kiểm tra tính hợp lệ của dữ liệu người dùng
+        if (!userInfo.name || userInfo.name.trim() === '') {
+            Alert.alert('Lỗi', 'Tên người dùng không được để trống.');
+            return;
+        }
+
+        if (!userInfo.phone_number || !validatePhoneNumber(userInfo.phone_number)) {
+            Alert.alert('Lỗi', 'Số điện thoại không hợp lệ.');
+            return;
+        }
+        // if (!userInfo.date || !validateDate(userInfo.date)) {
+        //     Alert.alert('Lỗi', 'Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng.');
+        //     return;
+        // }
+
+        // 2. Kiểm tra thông tin xe
+        if (!bike.license_plate || bike.license_plate.trim() === '') {
+            Alert.alert('Lỗi', 'Biển số xe không được để trống.');
+            return;
+        }
+
+        if (!bike.name || bike.name.trim() === '') {
+            Alert.alert('Lỗi', 'Tên xe không được để trống.');
+            return;
+        }
+
+        // 3. Kiểm tra nếu có ảnh
+        if (!imageUri) {
+            Alert.alert('Lỗi', 'Vui lòng chọn ảnh đại diện.');
+            return;
+        }
+
+        // Thông báo xác nhận trước khi đăng ký
+        Alert.alert(
+            'Xác nhận đăng ký',
+            'Bạn có chắc chắn muốn lưu thông tin này?',
+            [
+                {
+                    text: 'Hủy',
+                    onPress: () => console.log('Hủy đăng ký'),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Đồng ý',
+                    onPress: async () => {
+                        try {
+                            setIsLoading(true);
+                            const url = await uploadFirebase(imageUri);
+                            if (!url) {
+                                Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+                                return;
+                            }
+
+                            // Lưu thông tin người dùng và xe
+                            const profile = {
+                                ...userInfo,
+                                image: url,
+                            };
+                            const response = await updateDriver(profile);
+                            await updateLicenseDriver(bike);
+
+                            if (response) {
+                                Snackbar.show({
+                                    text: 'Thông tin của bạn đã được cập nhật.',
+                                    duration: Snackbar.LENGTH_SHORT,
+                                });
+                                navigation.navigate('MainDrawer');
+                            }
+                        } catch (error) {
+                            console.error('Error updating profile:', error);
+                            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -155,36 +156,33 @@ const Profile = () => {
                         <View style={styles.infoContainer}>
                             <Text style={styles.label}>Tên:</Text>
                             <TextInput
+                                mode='flat'
                                 style={styles.input}
                                 value={userInfo.name}
-                                editable={isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, name: text })}
                             />
                             <Text style={styles.label}>Số điện thoại:</Text>
                             <TextInput
                                 style={styles.input}
                                 value={userInfo.phone_number.toString()}
-                                editable={isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, phone_number: text })}
                             />
                             <Text style={styles.label}>Năm sinh:</Text>
                             <TextInput
+                                placeholder='dd-mm-yyyy'
                                 style={styles.input}
                                 value={userInfo.date}
-                                editable={isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, date: text })}
                             />
                             <Text style={styles.label}>Hiệu xe:</Text>
                             <TextInput
                                 style={styles.input}
-                                editable={isEditing}
                                 value={bike.name}
                                 onChangeText={(text) => setBike({ ...bike, name: text })}
                             />
                             <Text style={styles.label}>Biển số xe: </Text>
                             <TextInput
                                 style={styles.input}
-                                editable={isEditing}
                                 value={bike.license_plate}
                                 onChangeText={(text) => setBike({ ...bike, license_plate: text })}
                             />
@@ -192,13 +190,8 @@ const Profile = () => {
                         </View>
 
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={handleSaveChanges}>
-                                <Text style={styles.buttonText}>{isEditing ? 'Lưu' : 'Chỉnh sửa'}</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={navigation.navigate('Review')}>
-                                <Text style={styles.buttonText}>Review</Text>
+                            <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+                                <Text style={styles.buttonText}>Lưu</Text>
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -209,7 +202,7 @@ const Profile = () => {
 };
 
 
-export default Profile;
+export default RegisterInf;
 
 const styles = StyleSheet.create({
     container: {

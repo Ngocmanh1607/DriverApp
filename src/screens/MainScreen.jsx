@@ -36,7 +36,6 @@ const MainScreen = () => {
     const [route1, setRoute1] = useState([]);
     const [route2, setRoute2] = useState([]);
     const [ordersNew, setOrdersNew] = useState();
-    //Lây driverID
     useEffect(() => {
         const fetchDriverId = async () => {
             try {
@@ -184,7 +183,27 @@ const MainScreen = () => {
             console.error('Error fetching route:', error);
         }
     };
+    const getDirections = async () => {
+        const direction = await MapAPi.getDirections({
+            vehicle: 'bike',
+            origin: currentLocation,
+            destination: locations,
+        });
 
+        const decodePolyline = (encoded) => {
+            const decoded = polyline.decode(encoded);
+            return decoded.map(point => ({
+                latitude: point[0],
+                longitude: point[1],
+            }));
+        };
+
+        const coordinates = decodePolyline(
+            direction.routes[0].overview_polyline.points,
+        );
+
+        setRoute(coordinates);
+    };
     const handlePress = () => {
         navigation.navigate("OrderDetail", { ordersNew })
     }
@@ -256,7 +275,7 @@ const MainScreen = () => {
     }
     return (
         <View style={styles.container}>
-            <MapboxGL.MapView style={styles.map}>
+            <MapboxGL.MapView style={styles.map}  >
                 <MapboxGL.Camera
                     centerCoordinate={
                         shipperLocation ? [shipperLocation.longitude, shipperLocation.latitude] : [0, 0]
@@ -305,7 +324,10 @@ const MainScreen = () => {
                             coordinates: route1.map(coord => [coord.longitude, coord.latitude])
                         }
                     }}>
-                        <MapboxGL.LineLayer id="lineLayer1" style={{ lineColor: "#FF5733", lineWidth: 4 }} />
+                        <MapboxGL.LineLayer id="lineLayer1" style={{
+                            lineColor: "#FF5733", lineWidth: 4, lineCap: 'round',
+                            lineJoin: 'round',
+                        }} />
                     </MapboxGL.ShapeSource>
                 )}
 

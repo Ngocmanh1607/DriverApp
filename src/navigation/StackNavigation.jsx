@@ -10,12 +10,13 @@ import Profile from '../screens/Profile';
 import RegisterInf from '../screens/RegisterInf';
 import HeaderSwitch from '../components/HeaderSwitch';
 import OrderScreen from '../screens/OrderScreen';
+import ReviewScreen from '../screens/ReviewScreen';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 const handleLogout = (navigation) => {
-    navigation.replace('Auth'); // Chuyển hướng đến màn hình đăng nhập
+    navigation.replace('Auth');
 };
 
 // Drawer for MainScreen and Profile
@@ -93,6 +94,7 @@ const StackNavigation = () => {
                 component={OrderDetailScreen}
                 options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Chi tiết" }}
             />
+            <Stack.Screen name="Review" component={ReviewScreen} options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Đánh giá" }}/>
         </Stack.Navigator>
     );
 };
