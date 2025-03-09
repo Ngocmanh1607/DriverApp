@@ -31,6 +31,7 @@ const ConfirmEmailScreen = ({ navigation }) => {
                 onPress={handleResendEmail}
                 disabled={isResending}
             >
+
                 <Text style={styles.buttonText}>
                     {isResending ? "Đang gửi..." : "Gửi lại email xác nhận"}
                 </Text>

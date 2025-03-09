@@ -13,11 +13,11 @@ const requestLocationPermission = async () => {
         const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
             {
-                title: 'Location Permission',
-                message: 'This app requires access to your location.',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
+                title: 'Quyền truy cập vị trí',
+                message: 'Ứng dụng này cần quyền truy cập vị trí của bạn.',
+                buttonNeutral: 'Hỏi lại sau',
+                buttonNegative: 'Hủy',
+                buttonPositive: 'Đồng ý',
             },
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -28,7 +28,6 @@ const requestLocationPermission = async () => {
 };
 const MainScreen = () => {
     const navigation = useNavigation();
-    const [isLoading, setIsLoading] = useState(false);
     const [shipperLocation, setShipperLocation] = useState(null);
     const [driver_id, setDriverId] = useState(null);
     const [restaurantLocation, setRestaurantLocation] = useState(null);
@@ -127,17 +126,21 @@ const MainScreen = () => {
     useEffect(() => {
         const saveUpdatedRoutes = async () => {
             try {
-                console.log('Saving updated routes to storage:', route1, route2);
+                console.log('Đang lưu các tuyến đường vào bộ nhớ:', route1, route2);
                 await AsyncStorage.setItem(
                     'routes',
                     JSON.stringify({ route1, route2 })
                 );
+                console.log('Lưu tuyến đường thành công');
             } catch (error) {
-                console.error('Error saving updated routes to storage:', error);
+                console.error('Lỗi khi lưu tuyến đường:', error);
             }
         };
-        if (route1.length > 0 || route2.length > 0) {
+
+        if (route1?.length > 0 && route2?.length > 0) {
             saveUpdatedRoutes();
+        } else {
+            console.log('Không có tuyến đường để lưu');
         }
     }, [route1, route2]);
     //Khôi phục
@@ -147,14 +150,14 @@ const MainScreen = () => {
                 const savedRoutes = await AsyncStorage.getItem('routes');
                 if (savedRoutes) {
                     const { route1: savedRoute1 = [], route2: savedRoute2 = [] } = JSON.parse(savedRoutes);
-                    console.log('Restored routes from storage:', savedRoute1, savedRoute2);
+                    console.log('Khôi phục tuyến đường từ bộ nhớ:', savedRoute1, savedRoute2);
                     setRoute1(Array.isArray(savedRoute1) ? savedRoute1 : []);
                     setRoute2(Array.isArray(savedRoute2) ? savedRoute2 : []);
                 } else {
-                    console.log('No saved routes found in storage');
+                    console.log('Không tìm thấy tuyến đường đã lưu trong bộ nhớ');
                 }
             } catch (error) {
-                console.error('Error restoring routes from storage:', error.message);
+                console.error('Lỗi khi khôi phục tuyến đường từ bộ nhớ:', error.message);
             }
         };
 

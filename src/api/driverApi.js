@@ -4,7 +4,6 @@ import fetchFcmToken from "../utils/fcmToken";
 const apiKey = '123';
 const signupApi = async (email, password) => {
     // const fcmToken = await fetchFcmToken();
-
     const response = await apiClient.post(
         "/user/signup",
         { email, password, fcmToken: '123', role: "driver" },
@@ -309,4 +308,27 @@ const changeStatus = async (driver_id) => {
         throw new Error('Failed to fetch user info');
     }
 }
-export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder, changeStatus };
+
+const getReview = async (driverId) => {
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
+        throw new Error("User not logged in");
+    }
+    try {
+        const response = await apiClient.get(`/review/${driverId}/driver`,
+            {
+                headers: {
+                    "x-api-key": apiKey,
+                    "authorization": accessToken,
+                    "x-client-id": userId,
+                }
+            }
+        );
+        return response.data.metadata;
+    } catch {
+        console.error('Error fetching user info:', error);
+        throw new Error('Failed to fetch user info');
+    }
+}
+export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder, changeStatus, getReview };
