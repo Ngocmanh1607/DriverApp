@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadUserImage } from '../utils/firebaseUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { TextInput } from 'react-native-paper';
 import Snackbar from 'react-native-snackbar';
 import { getInfoUser, updateDriver, updateLicenseDriver } from '../api/driverApi';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 const Profile = () => {
     const navigation = useNavigation();
     const [isEditing, setIsEditing] = useState(false)
@@ -64,7 +65,7 @@ const Profile = () => {
         }
     };
 
-    const handleSaveChanges = async () => {
+    const toggleEditMode = async () => {
         if (isEditing) {
             // Validate data
             if (!userInfo.name.trim()) {
@@ -134,7 +135,7 @@ const Profile = () => {
         }
     };
 
-
+    const handleCancel = () => setIsEditing(!isEditing);
     return (
         <View style={styles.container}>
             {
@@ -153,54 +154,73 @@ const Profile = () => {
                         </View>
 
                         <View style={styles.infoContainer}>
-                            <Text style={styles.label}>Tên:</Text>
                             <TextInput
-                                style={styles.input}
+                                label="Tên"
+                                mode="outlined"
                                 value={userInfo.name}
-                                editable={isEditing}
+                                disabled={!isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, name: text })}
-                            />
-                            <Text style={styles.label}>Số điện thoại:</Text>
-                            <TextInput
                                 style={styles.input}
+                                theme={{ colors: { primary: '#FF0000' } }}
+                            />
+                            <TextInput
+                                label="Số điện thoại"
+                                mode="outlined"
                                 value={userInfo.phone_number.toString()}
-                                editable={isEditing}
+                                disabled={!isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, phone_number: text })}
-                            />
-                            <Text style={styles.label}>Năm sinh:</Text>
-                            <TextInput
                                 style={styles.input}
+                                theme={{ colors: { primary: '#FF0000' } }}
+                                keyboardType="numeric"
+                            />
+                            <TextInput
+                                label="Năm sinh"
+                                mode="outlined"
                                 value={userInfo.date}
-                                editable={isEditing}
+                                disabled={!isEditing}
                                 onChangeText={(text) => setUserInfo({ ...userInfo, date: text })}
-                            />
-                            <Text style={styles.label}>Hiệu xe:</Text>
-                            <TextInput
                                 style={styles.input}
-                                editable={isEditing}
+                                theme={{ colors: { primary: '#FF0000' } }}
+                            />
+                            <TextInput
+                                label="Hiệu xe"
+                                mode="outlined"
                                 value={bike.name}
+                                disabled={!isEditing}
                                 onChangeText={(text) => setBike({ ...bike, name: text })}
-                            />
-                            <Text style={styles.label}>Biển số xe: </Text>
-                            <TextInput
                                 style={styles.input}
-                                editable={isEditing}
-                                value={bike.license_plate}
-                                onChangeText={(text) => setBike({ ...bike, license_plate: text })}
+                                theme={{ colors: { primary: '#FF0000' } }}
                             />
-
+                            <TextInput
+                                label="Biển số xe"
+                                mode="outlined"
+                                value={bike.license_plate}
+                                disabled={!isEditing}
+                                onChangeText={(text) => setBike({ ...bike, license_plate: text })}
+                                style={styles.input}
+                                theme={{ colors: { primary: '#FF0000' } }}
+                            />
                         </View>
 
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={handleSaveChanges}>
-                                <Text style={styles.buttonText}>{isEditing ? 'Lưu' : 'Chỉnh sửa'}</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: isEditing ? '#33CC66' : '#FF0000' }]} onPress={()=>{navigation.navigate('Review')}}>
-                                <Text style={styles.buttonText}>Review</Text>
-                            </TouchableOpacity>
-                        </View>
+                        {isEditing ? (
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity style={styles.saveButton} onPress={toggleEditMode}>
+                                    <Text style={styles.buttonText}>Lưu</Text>
+                                    <Icon name="save" size={18} color="#fff" style={styles.logoutIcon} />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                    <Text style={styles.buttonText}>Huỷ</Text>
+                                    <Icon name="times" size={18} color="#fff" style={styles.logoutIcon} />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity style={styles.editButton} onPress={toggleEditMode}>
+                                    <Text style={styles.buttonText}>Chỉnh sửa</Text>
+                                    <Icon name="edit" size={18} color="#fff" style={styles.logoutIcon} />
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </ScrollView>
                 )
             }
@@ -216,82 +236,92 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F8F8F8',
     },
-    header: {
-        backgroundColor: '#FF6347',
-        paddingVertical: 20,
-        paddingHorizontal: 15,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    headerText: {
-        fontSize: 20,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
     avatarContainer: {
         backgroundColor: '#FFF',
-        width: 120,
-        height: 120,
-        marginTop: 10,
+        width: 150,
+        height: 150,
+        marginTop: 20,
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'center',
-        borderRadius: 60,
-        borderWidth: 3,
-        borderColor: '#FF0000',
-        elevation: 5
+        borderRadius: 75,
+        elevation: 5,
+        marginBottom: 20
     },
-    avatar: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#FF6347',
-        borderWidth: 2,
-    },
-    editAvatar: {
-        position: 'absolute',
-        bottom: 0,
-        right: 10,
-        backgroundColor: '#FF0000',
-        padding: 5,
-        borderRadius: 15,
+    profileImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
     },
     infoContainer: {
         paddingHorizontal: 20,
-        marginTop: 20,
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
     },
     input: {
         backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 8,
         marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#ddd',
     },
     buttonContainer: {
-        marginTop: 20,
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        marginTop: 15,
         paddingHorizontal: 20,
+        marginBottom: 20,
     },
-    saveButton: {
-        backgroundColor: '#FF0000',
-        paddingVertical: 12,
-        borderRadius: 8,
+    editButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        backgroundColor: '#e74c3c',
+        paddingVertical: 14,
+        borderRadius: 10,
+        width: '100%',
         alignItems: 'center',
         marginBottom: 10,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
-    profileImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+    saveButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        backgroundColor: '#27ae60',
+        paddingVertical: 14,
+        borderRadius: 10,
+        width: '45%',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    cancelButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        backgroundColor: '#e74c3c',
+        paddingVertical: 14,
+        borderRadius: 10,
+        width: '45%',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     buttonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
-    },
+        fontWeight: '600',
+    }
 });

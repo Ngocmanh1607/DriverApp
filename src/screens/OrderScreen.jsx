@@ -51,7 +51,8 @@ const OrderScreen = () => {
                     data={orders}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderOrder}
-                    ListEmptyComponent={<Text>No orders available</Text>}
+                    ListEmptyComponent={<Text style={styles.emptyText}>Chưa có đơn hàng</Text>}
+                    contentContainerStyle={styles.listContainer}
                 />
             )}
         </View>
@@ -63,7 +64,19 @@ export default OrderScreen
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
-        backgroundColor: '#f8f8f8',
+        backgroundColor: '#F5F5F5',
+        paddingHorizontal: 16,
+        paddingTop: 20
     },
+    listContainer: {
+        flexGrow: 1,
+        paddingBottom: 20
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginTop: 20,
+        fontStyle: 'italic'
+    }
 })

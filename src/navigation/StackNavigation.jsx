@@ -11,13 +11,11 @@ import RegisterInf from '../screens/RegisterInf';
 import HeaderSwitch from '../components/HeaderSwitch';
 import OrderScreen from '../screens/OrderScreen';
 import ReviewScreen from '../screens/ReviewScreen';
+import AccountScreen from '../screens/AccountScreen';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-const handleLogout = (navigation) => {
-    navigation.replace('Auth');
-};
 
 // Drawer for MainScreen and Profile
 const MainDrawer = () => (
@@ -37,6 +35,10 @@ const MainDrawer = () => (
             component={OrderScreen}
         />
         <Drawer.Screen
+            name="Tài khoản"
+            component={AccountScreen}
+        />
+        {/* <Drawer.Screen
             name="Profile"
             component={Profile}
             options={({ navigation }) => ({
@@ -49,7 +51,7 @@ const MainDrawer = () => (
                     </TouchableOpacity>
                 ),
             })}
-        />
+        /> */}
     </Drawer.Navigator>
 );
 
@@ -94,7 +96,12 @@ const StackNavigation = () => {
                 component={OrderDetailScreen}
                 options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Chi tiết" }}
             />
-            <Stack.Screen name="Review" component={ReviewScreen} options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Đánh giá" }}/>
+            <Stack.Screen
+                name="Profile"
+                component={Profile}
+                options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Thông tin" }}
+            />
+            <Stack.Screen name="Review" component={ReviewScreen} options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Đánh giá" }} />
         </Stack.Navigator>
     );
 };
