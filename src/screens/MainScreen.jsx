@@ -62,7 +62,6 @@ const MainScreen = () => {
     useEffect(() => {
         if (!driver_id) return;
         socket.on('connect', () => {
-            console.log('Connected to the server:', socket.id);
             socket.emit('joinDriver', driver_id);
         });
 

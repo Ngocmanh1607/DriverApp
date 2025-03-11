@@ -58,6 +58,7 @@ const SignupScreen = () => {
                 navigation.navigate('Đăng kí thông tin');
             } catch (error) {
                 setErrors({ apiError: 'Đăng kí thất bại. Vui lòng thử lại' });
+                Alert.alert('Lỗi', error.message);
             } finally {
                 setLoading(false);
             }
@@ -66,40 +67,40 @@ const SignupScreen = () => {
 
     return (
         <View style={styles.container}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-                <View style={styles.inputSignContainer}>
-                    <Fontisto name="email" color="#9a9a9a" size={22} style={styles.inputIcon} />
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Email"
-                        placeholderTextColor="#A9A9A9"
-                        value={email}
-                        onChangeText={setEmail}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.container}>
+                    <View style={styles.inputSignContainer}>
+                        <Fontisto name="email" color="#9a9a9a" size={22} style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Email"
+                            placeholderTextColor="#A9A9A9"
+                            value={email}
+                            onChangeText={setEmail}
+                        />
+                    </View>
+                    {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                    <PasswordInput
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholderText="Mật khẩu"
                     />
+                    {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                    <PasswordInput
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        placeholderText="Xác nhận mật khẩu"
+                    />
+                    {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+
+                    {errors.apiError && <Text style={styles.errorText}>{errors.apiError}</Text>}
+
+                    <TouchableOpacity style={styles.loginButtonContainer} onPress={handleSignUp} >
+                        <Text style={styles.textLogin}> Đăng kí</Text>
+                    </TouchableOpacity>
                 </View>
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-                <PasswordInput
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholderText="Mật khẩu"
-                />
-                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-                <PasswordInput
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    placeholderText="Xác nhận mật khẩu"
-                />
-                {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
-
-                {errors.apiError && <Text style={styles.errorText}>{errors.apiError}</Text>}
-
-                <TouchableOpacity style={styles.loginButtonContainer} onPress={handleSignUp} >
-                    <Text style={styles.textLogin}> Đăng kí</Text>
-                </TouchableOpacity>
-            </View>
-        </TouchableWithoutFeedback>
-        {loading&& <Loading/>}
+            </TouchableWithoutFeedback>
+            {loading && <Loading />}
         </View>
     );
 }

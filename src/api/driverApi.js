@@ -3,40 +3,54 @@ import apiClient from "./apiClient";
 import fetchFcmToken from "../utils/fcmToken";
 const apiKey = '123';
 const signupApi = async (email, password) => {
-    // const fcmToken = await fetchFcmToken();
-    const response = await apiClient.post(
-        "/user/signup",
-        { email, password, fcmToken: '123', role: "driver" },
-        {
-            headers: {
-                "x-api-key": apiKey
+    try {
+        // const fcmToken = await fetchFcmToken();
+        const fcmToken = 'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        const response = await apiClient.post(
+            "/user/signup",
+            { email, password, fcmToken, role: "driver" },
+            {
+                headers: {
+                    "x-api-key": apiKey
+                }
             }
+        );
+        const { message, metadata } = response.data;
+        if (!message) {
+            console.error('Error message:', message);
+            return;
         }
-    );
-    const { message, metadata } = response.data;
-    if (!message) {
-        console.error('Error message:', message);
-        return;
+
+        const { accessToken, refreshToken } = metadata.tokens;
+        const { email: userEmail, id: userId } = metadata.user;
+
+        console.log('Data stored successfully:', {
+            accessToken,
+            refreshToken,
+            userEmail,
+            userId
+        });
+
+        await AsyncStorage.multiSet([
+            ['accessToken', accessToken],
+            ['refreshToken', refreshToken],
+            ['userEmail', userEmail],
+            ['userId', userId.toString()]
+        ]);
+
+        return response.data.metadata;
+    } catch (error) {
+        if (error.response) {
+            console.error("Lỗi từ server:", error.response.data);
+            const serverError = error.response.data?.message || "Có lỗi xảy ra từ phía server.";
+            throw new Error(serverError);
+        } else if (error.request) {
+            throw new Error("Không nhận được phản hồi từ server. Vui lòng kiểm tra kết nối mạng.");
+        } else {
+            console.error("Lỗi không xác định:", error.message);
+            throw new Error("Đã xảy ra lỗi không xác định. Vui lòng thử lại.");
+        }
     }
-
-    const { accessToken, refreshToken } = metadata.tokens;
-    const { email: userEmail, id: userId } = metadata.user;
-
-    console.log('Data stored successfully:', {
-        accessToken,
-        refreshToken,
-        userEmail,
-        userId
-    });
-
-    await AsyncStorage.multiSet([
-        ['accessToken', accessToken],
-        ['refreshToken', refreshToken],
-        ['userEmail', userEmail],
-        ['userId', userId.toString()]
-    ]);
-
-    return response.data.metadata;
 };
 
 const loginApi = async (email, password) => {
