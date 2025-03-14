@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import { useNavigation } from '@react-navigation/native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { uploadUserImage } from '../utils/firebaseUtils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextInput } from 'react-native-paper'
-import Snackbar from 'react-native-snackbar';
-import { updateDriver, updateLicenseDriver } from '../api/driverApi';
 const Test = () => {
     const [isLoading, setIsLoading] = useState(false);
     return (
@@ -28,6 +22,39 @@ const Test = () => {
                         </View>
 
                         <View style={styles.infoContainer}>
+                            <TextInput
+                                label="Số CCCD"
+                                mode="outlined"
+                                activeOutlineColor="#e74c3c"
+                                value={info.id || ''}
+                                style={styles.input}
+                                onChangeText={(text) => setInfo({ ...info, id: text })}
+                            />
+                            <TextInput
+                                label="Họ và tên"
+                                mode="outlined"
+                                activeOutlineColor="#e74c3c"
+                                value={info.fullName || ''}
+                                style={styles.input}
+                                onChangeText={(text) => setInfo({ ...info, fullName: text })}
+                            />
+                            <TextInput
+                                label="Ngày sinh"
+                                mode="outlined"
+                                activeOutlineColor="#e74c3c"
+                                value={info.dob || ''}
+                                style={styles.input}
+                                onChangeText={(text) => setInfo({ ...info, dob: text })}
+                            />
+                            <TextInput
+                                label="Địa chỉ"
+                                mode="outlined"
+                                activeOutlineColor="#e74c3c"
+                                value={info.address || ''}
+                                style={styles.input}
+                                numberOfLines={2}
+                                onChangeText={(text) => setInfo({ ...info, address: text })}
+                            />
                             <Text style={styles.label}>Tên:</Text>
                             <TextInput
                                 style={styles.input}

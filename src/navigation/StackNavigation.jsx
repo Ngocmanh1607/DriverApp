@@ -14,6 +14,7 @@ import ReviewScreen from '../screens/ReviewScreen';
 import AccountScreen from '../screens/AccountScreen';
 import InformationScreen from '../screens/InformationScreen';
 import QRScanner from '../screens/QRScaner';
+import Test from '../screens/Test';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -107,6 +108,11 @@ const StackNavigation = () => {
             <Stack.Screen
                 name="Information"
                 component={InformationScreen}
+                options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Thông tin" }}
+            />
+            <Stack.Screen
+                name="test"
+                component={Test}
                 options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Thông tin" }}
             />
             <Stack.Screen
