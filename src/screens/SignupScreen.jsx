@@ -4,7 +4,7 @@ import Fontisto from 'react-native-vector-icons/Fontisto';
 import PasswordInput from '../components/PasswordInput';
 import { useNavigation } from '@react-navigation/native';
 import { signupApi } from '../api/driverApi';
-import styles from '../access/css/SignupStyle';
+import styles from '../assets/css/SignupStyle';
 import Loading from '../components/Loading';
 const SignupScreen = () => {
     const navigation = useNavigation();

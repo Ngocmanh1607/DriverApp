@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { acceptOrder, confirmOrder, getInfoUser, giveOrder, rejectOrder } from '../api/driverApi';
 import socket from '../api/socket';
-import styles from '../access/css/MainStyle'
+import styles from '../assets/css/MainStyle'
 const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(

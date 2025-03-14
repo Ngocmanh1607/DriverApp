@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import PasswordInput from '../components/PasswordInput';
 import { loginApi } from '../api/driverApi';
-import styles from '../access/css/LoginStyle';
+import styles from '../assets/css/LoginStyle';
 import Loading from '../components/Loading';
 const LoginScreen = () => {
     const navigation = useNavigation();

@@ -1,4 +1,4 @@
-import { StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -15,6 +15,7 @@ import AccountScreen from '../screens/AccountScreen';
 import InformationScreen from '../screens/InformationScreen';
 import QRScanner from '../screens/QRScanner';
 import Test from '../screens/Test';
+import StatisticScreen from '../screens/StatisticScreen';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -36,6 +37,11 @@ const MainDrawer = () => (
         <Drawer.Screen
             name="Đơn đã giao"
             component={OrderScreen}
+        />
+        <Drawer.Screen
+            name="Statistic"
+            component={StatisticScreen}
+            options={{ title: 'Thống kê' }}
         />
         <Drawer.Screen
             name="Tài khoản"
@@ -125,5 +131,3 @@ const StackNavigation = () => {
 };
 
 export default StackNavigation;
-
-const styles = StyleSheet.create({});

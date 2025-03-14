@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, Image } from 'react-native';
-import styles from '../access/Images/ConfirmEmailStyle';
+import styles from '../assets/Images/ConfirmEmailStyle';
 const ConfirmEmailScreen = ({ navigation }) => {
     const [isResending, setIsResending] = useState(false);
 
@@ -19,7 +19,7 @@ const ConfirmEmailScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.topImageContainer}>
-                <Image source={require("../access/Images/Shipper.webp")} style={styles.topImage} />
+                <Image source={require("../assets/Images/Shipper.webp")} style={styles.topImage} />
             </View>
             <Text style={styles.title}>Xác nhận Email</Text>
             <Text style={styles.message}>

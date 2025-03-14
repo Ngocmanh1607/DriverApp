@@ -1,63 +1,109 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadUserImage } from '../utils/firebaseUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TextInput } from 'react-native-paper';
+import { TextInput } from 'react-native-paper'
 import Snackbar from 'react-native-snackbar';
-import { getInfoUser, updateDriver, updateLicenseDriver } from '../api/driverApi';
+import { updateDriver, updateLicenseDriver, getInfoUser } from '../api/driverApi';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-const Profile = () => {
+import styles from '../assets/css/ProfileStyle';
+const Profile = ({ route }) => {
+    const [isEditing, setIsEditing] = useState(false);
     const navigation = useNavigation();
-    const [isEditing, setIsEditing] = useState(false)
-    const [userInfo, setUserInfo] = useState({
-        name: '',
-        image: '',
+    const [info, setInfo] = useState({
+        id: '',
+        cmnd: '',
+        fullName: '',
+        dob: '',
+        gender: '',
+        address: '',
         date: '',
         phone_number: '',
+        cccdFront: '',
+        cccdBack: '',
+        image: ''
     });
     const [bike, setBike] = useState({
         license_plate: '',
-        name: ''
-    })
+        name: '',
+        cavet: ''
+    });
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [imageUri, setImageUri] = useState('');
+
+    useEffect(() => {
+        if (route.params?.scannedInfo) {
+            setInfo(route.params.scannedInfo);
+        }
+    }, [route.params?.scannedInfo]);
     useEffect(() => {
         const fetchInfoUser = async () => {
-            const response = await getInfoUser();
-            setUserInfo({
-                name: response.name,
-                image: response.image,
-                phone_number: response.phone_number,
-                date: response.date.split('T')[0],
-            })
-            setImageUri(response.image)
-            setBike({
-                license_plate: response.Driver.license_plate,
-                name: response.Driver.car_name,
-            })
-            console.log(response)
+            try {
+                const response = await getInfoUser();
+                setUserInfo({
+                    name: response.name,
+                    image: response.image,
+                    phone_number: response.phone_number,
+                    date: response.date.split('T')[0],
+                })
+                setImageUri(response.image)
+                setBike({
+                    license_plate: response.Driver.license_plate,
+                    name: response.Driver.car_name,
+                })
+                console.log(response)
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+            }
         }
         fetchInfoUser();
     }, [])
-    const [isLoading, setIsLoading] = useState(false);
-    const [imageUri, setImageUri] = useState();
-
-    const openImagePicker = () => {
+    const openImagePicker = async (type) => {
         const options = {
             mediaType: 'photo',
+            quality: 0.8,
+            maxWidth: 1024,
+            maxHeight: 1024,
         };
-        launchImageLibrary(options, (res) => {
+
+        try {
+            const res = await launchImageLibrary(options);
             if (res.assets && res.assets.length > 0) {
-                setImageUri(res.assets[0].uri);
+                const imageUri = res.assets[0].uri;
+                switch (type) {
+                    case 'avatar':
+                        setImageUri(imageUri);
+                        break;
+                    case 'cccdFront':
+                        setInfo(prev => ({ ...prev, cccdFront: imageUri }));
+                        break;
+                    case 'cccdBack':
+                        setInfo(prev => ({ ...prev, cccdBack: imageUri }));
+                        break;
+                    case 'cavet':
+                        setBike(prev => ({ ...prev, cavet: imageUri }));
+                        break;
+                    default:
+                        break;
+                }
             }
-        });
+        } catch (error) {
+            Snackbar.show({
+                text: 'Không thể chọn ảnh. Vui lòng thử lại',
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: '#e74c3c'
+            });
+        }
     };
 
-    const uploadFirebase = async (image) => {
+    const uploadFirebase = async (image, imageType) => {
         try {
             const userId = await AsyncStorage.getItem('userId');
-            const imageUrl = await uploadUserImage(userId, image);
+            const imageUrl = await uploadUserImage(userId, image, imageType);
             return imageUrl;
         } catch (error) {
             console.error("Error uploading image:", error);
@@ -65,27 +111,40 @@ const Profile = () => {
         }
     };
 
+    // Validate định dạng số điện thoại (ví dụ: Việt Nam)
+    const validatePhoneNumber = (phoneNumber) => {
+        const phoneRegex = /^(\+84|0)\d{9}$/; // Ví dụ: +84 hoặc 0 theo sau là 9 số
+        return phoneRegex.test(phoneNumber);
+    };
+    // Validate ngày tháng năm sinh
+    const validateDate = (date) => {
+        const dateRegex = /^(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4})$/; // Định dạng ngày: dd-mm-yyyy
+        return dateRegex.test(date);
+    };
+
     const toggleEditMode = async () => {
         if (isEditing) {
-            // Validate data
-            if (!userInfo.name.trim()) {
-                Alert.alert('Lỗi', 'Tên không được để trống.');
+            // Kiểm tra các trường bắt buộc
+            if (!info.fullName || !info.phone || !info.dob || !info.address || !info.cccdFront || !info.cccdBack) {
+                Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
                 return;
             }
-            if (!userInfo.phone_number.trim() || !/^\d{10}$/.test(userInfo.phone_number)) {
-                Alert.alert('Lỗi', 'Số điện thoại không hợp lệ.');
+            // Kiểm tra thông tin xe
+            if (!bike.name || !bike.cavet) {
+                Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
                 return;
             }
-            if (!bike.license_plate.trim()) {
-                Alert.alert('Lỗi', 'Biển số xe không được để trống.');
+            // Kiểm tra định dạng số điện thoại
+            if (!validatePhoneNumber(info.phone)) {
+                Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
                 return;
             }
-            if (!bike.name.trim()) {
-                Alert.alert('Lỗi', 'Tên xe không được để trống.');
+            // Kiểm tra định dạng ngày sinh
+            if (!validateDate(info.dob)) {
+                Alert.alert('Thông báo', 'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)');
                 return;
             }
 
-            // Show confirmation dialog
             Alert.alert(
                 'Xác nhận',
                 'Bạn có chắc chắn muốn lưu thay đổi?',
@@ -144,64 +203,170 @@ const Profile = () => {
                         <ActivityIndicator size='large' color='#FF0000' />
                     </View>
                 ) : (
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <View style={styles.avatarContainer}>
-                            <TouchableOpacity style={styles.imageContainer} onPress={openImagePicker}>
-                                {imageUri ? (
-                                    <Image source={{ uri: imageUri }} style={styles.profileImage} />
-                                ) : (<FontAwesome name="user" size={60} color="black" style={{ paddingVertical: 6 }} />)}
-                            </TouchableOpacity>
-                        </View>
+                    <View>
+                        <TouchableWithoutFeedback onPress={() => setIsEditing(false)}>
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <View style={styles.avatarContainer}>
+                                    <TouchableOpacity style={styles.imageContainer} onPress={() => openImagePicker('avatar')} disabled={!isEditing}>
+                                        {imageUri ? (
+                                            <Image source={{ uri: imageUri }} style={styles.profileImage} />
+                                        ) : (<FontAwesome name="user" size={60} color="black" style={{ paddingVertical: 6 }} />)}
+                                    </TouchableOpacity>
+                                </View>
 
-                        <View style={styles.infoContainer}>
-                            <TextInput
-                                label="Tên"
-                                mode="outlined"
-                                value={userInfo.name}
-                                disabled={!isEditing}
-                                onChangeText={(text) => setUserInfo({ ...userInfo, name: text })}
-                                style={styles.input}
-                                theme={{ colors: { primary: '#FF0000' } }}
-                            />
-                            <TextInput
-                                label="Số điện thoại"
-                                mode="outlined"
-                                value={userInfo.phone_number.toString()}
-                                disabled={!isEditing}
-                                onChangeText={(text) => setUserInfo({ ...userInfo, phone_number: text })}
-                                style={styles.input}
-                                theme={{ colors: { primary: '#FF0000' } }}
-                                keyboardType="numeric"
-                            />
-                            <TextInput
-                                label="Năm sinh"
-                                mode="outlined"
-                                value={userInfo.date}
-                                disabled={!isEditing}
-                                onChangeText={(text) => setUserInfo({ ...userInfo, date: text })}
-                                style={styles.input}
-                                theme={{ colors: { primary: '#FF0000' } }}
-                            />
-                            <TextInput
-                                label="Hiệu xe"
-                                mode="outlined"
-                                value={bike.name}
-                                disabled={!isEditing}
-                                onChangeText={(text) => setBike({ ...bike, name: text })}
-                                style={styles.input}
-                                theme={{ colors: { primary: '#FF0000' } }}
-                            />
-                            <TextInput
-                                label="Biển số xe"
-                                mode="outlined"
-                                value={bike.license_plate}
-                                disabled={!isEditing}
-                                onChangeText={(text) => setBike({ ...bike, license_plate: text })}
-                                style={styles.input}
-                                theme={{ colors: { primary: '#FF0000' } }}
-                            />
-                        </View>
+                                <View style={styles.infoContainer}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <Text style={[styles.label, { marginTop: 50 }]}>Thông tin cá nhân</Text>
+                                        <TouchableOpacity style={styles.scanButton} onPress={() => navigation.navigate('QRScanner')} disabled={!isEditing}>
+                                            <Text style={[styles.input, { color: '#FF0000' }]}>Quét mã QR để lấy thông tin</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <TextInput
+                                        label="Số CCCD"
+                                        mode="outlined"
+                                        placeholder="VD: 123456789012"
+                                        activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                        outlineColor="#666"
+                                        editable={isEditing}
+                                        value={info.id || ''}
+                                        style={styles.input}
+                                        onChangeText={(text) => setInfo({ ...info, id: text })}
+                                    />
+                                    <TextInput
+                                        label="Họ và tên"
+                                        mode="outlined"
+                                        placeholder="VD: Nguyễn Văn A"
+                                        activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                        outlineColor="#666"
+                                        editable={isEditing}
+                                        value={info.fullName || ''}
+                                        style={styles.input}
+                                        onChangeText={(text) => setInfo({ ...info, fullName: text })}
+                                    />
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <TextInput
+                                            label="Ngày sinh"
+                                            mode="outlined"
+                                            activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                            outlineColor="#666"
+                                            editable={isEditing}
+                                            placeholder="VD: 12/12/1990"
+                                            value={info.dob || ''}
+                                            style={[styles.input, { width: '64%' }]}
+                                            onChangeText={(text) => setInfo({ ...info, dob: text })}
+                                        />
+                                        <TextInput
+                                            label="Giới tính"
+                                            placeholder="Nam/Nữ"
+                                            mode="outlined"
+                                            activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                            outlineColor="#666"
+                                            editable={isEditing}
+                                            value={info.gender || ''}
+                                            style={[styles.input, { width: '34%' }]}
+                                            onChangeText={(text) => setInfo({ ...info, gender: text })}
+                                        />
+                                    </View>
+                                    <TextInput
+                                        label="Số điện thoại"
+                                        mode="outlined"
+                                        activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                        outlineColor="#666"
+                                        editable={isEditing}
+                                        placeholder="VD: 0909090909"
+                                        value={info.phone_number || ''}
+                                        style={styles.input}
+                                        onChangeText={(text) => setInfo({ ...info, phone_number: text })}
+                                    />
+                                    <TextInput
+                                        label="Địa chỉ"
+                                        mode="outlined"
+                                        activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                        outlineColor="#666"
+                                        editable={isEditing}
+                                        value={info.address || ''}
+                                        style={styles.input}
+                                        numberOfLines={2}
+                                        onChangeText={(text) => setInfo({ ...info, address: text })}
+                                    />
+                                    <Text style={styles.label}>Ảnh CCCD</Text>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                                        <TouchableOpacity
+                                            style={styles.cccdImageContainer}
+                                            onPress={() => openImagePicker('cccdFront')}
+                                            disabled={!isEditing}
+                                        >
+                                            {info.cccdFront ? (
+                                                <Image source={{ uri: info.cccdFront }} style={styles.cccdImage} />
+                                            ) : (
+                                                <View style={styles.cccdPlaceholder}>
+                                                    <FontAwesome name="camera" size={24} color="#666" />
+                                                    <Text style={{ color: '#666', marginTop: 8 }}>Mặt trước CCCD</Text>
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
 
+                                        <TouchableOpacity
+                                            style={styles.cccdImageContainer}
+                                            onPress={() => openImagePicker('cccdBack')}
+                                            disabled={!isEditing}
+                                        >
+                                            {info.cccdBack ? (
+                                                <Image source={{ uri: info.cccdBack }} style={styles.cccdImage} />
+                                            ) : (
+                                                <View style={styles.cccdPlaceholder}>
+                                                    <FontAwesome name="camera" size={24} color="#666" />
+                                                    <Text style={{ color: '#666', marginTop: 8 }}>Mặt sau CCCD</Text>
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+
+                                </View>
+                                <View style={styles.vehicleInfo}>
+                                    <Text style={styles.label}>Thông tin phương tiện</Text>
+                                    <TextInput
+                                        label="Biển số xe"
+                                        mode="outlined"
+                                        activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                        outlineColor="#666"
+                                        editable={isEditing}
+                                        placeholder="VD: 59A1-123.45"
+                                        value={bike.license_plate || ''}
+                                        style={styles.input}
+                                        onChangeText={(text) => setBike({ ...bike, license_plate: text })}
+                                    />
+                                    <TextInput
+                                        label="Tên xe"
+                                        mode="outlined"
+                                        activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
+                                        outlineColor="#666"
+                                        editable={isEditing}
+                                        value={bike.name || ''}
+                                        style={styles.input}
+                                        placeholder="VD: Honda Wave, Yamaha Sirius..."
+                                        onChangeText={(text) => setBike({ ...bike, name: text })}
+                                    />
+                                    <View style={styles.imageUploadContainer}>
+                                        <Text style={styles.label}>Hình ảnh đăng ký xe (Cà vẹt)</Text>
+                                        <TouchableOpacity
+                                            style={[styles.cccdImageContainer, { alignSelf: 'center' }]}
+                                            onPress={() => openImagePicker('cavet')}
+                                            disabled={!isEditing}
+                                        >
+                                            {info.cavet ? (
+                                                <Image source={{ uri: info.cavet }} style={styles.cccdImage} />
+                                            ) : (
+                                                <View style={styles.cccdPlaceholder}>
+                                                    <FontAwesome name="camera" size={24} color="#666" />
+                                                    <Text style={{ color: '#666', marginTop: 8 }}>Hình ảnh cà vẹt xe</Text>
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </ScrollView>
+                        </TouchableWithoutFeedback>
                         {isEditing ? (
                             <View style={styles.buttonContainer}>
                                 <TouchableOpacity style={styles.saveButton} onPress={toggleEditMode}>
@@ -221,107 +386,12 @@ const Profile = () => {
                                 </TouchableOpacity>
                             </View>
                         )}
-                    </ScrollView>
+                    </View>
                 )
             }
-        </View>
+        </View >
     );
 };
 
 
-export default Profile;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F8F8',
-    },
-    avatarContainer: {
-        backgroundColor: '#FFF',
-        width: 150,
-        height: 150,
-        marginTop: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignSelf: 'center',
-        borderRadius: 75,
-        elevation: 5,
-        marginBottom: 20
-    },
-    profileImage: {
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-    },
-    infoContainer: {
-        paddingHorizontal: 20,
-    },
-    input: {
-        backgroundColor: '#fff',
-        marginBottom: 15,
-    },
-    buttonContainer: {
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        marginTop: 15,
-        paddingHorizontal: 20,
-        marginBottom: 20,
-    },
-    editButton: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        backgroundColor: '#e74c3c',
-        paddingVertical: 14,
-        borderRadius: 10,
-        width: '100%',
-        alignItems: 'center',
-        marginBottom: 10,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    saveButton: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        backgroundColor: '#27ae60',
-        paddingVertical: 14,
-        borderRadius: 10,
-        width: '45%',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    cancelButton: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        backgroundColor: '#e74c3c',
-        paddingVertical: 14,
-        borderRadius: 10,
-        width: '45%',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-    }
-});
+export default Profile; 

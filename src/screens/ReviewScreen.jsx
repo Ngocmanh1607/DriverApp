@@ -1,6 +1,6 @@
 import { View, Text, FlatList } from 'react-native';
 import React, { useMemo, useState, useEffect } from 'react';
-import styles from '../access/css/ReviewStyle';
+import styles from '../assets/css/ReviewStyle';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import * as Progress from 'react-native-progress';
 import ReviewItem from '../components/ReviewItem';
@@ -37,13 +37,13 @@ const ReviewScreen = () => {
         fetchReviews();
     }, [driverId]);
     const sampleReview = [
-        { id: 0, user: 'Ngọc Mạnh', date: '17:33 12/02/2025', rating: 5, text: 'Ngon vl' },
+        { id: 0, user: 'Ngọc Mạnh', date: '17:33 12/02/2025', rating: 5, text: 'Thân thiên' },
         { id: 1, user: 'Thanh Tịnh', date: '17:33 12/02/2025', rating: 4, text: 'Tạm tạm' },
-        { id: 2, user: 'Mai Nhung', date: '13:24 27/10/2024', rating: 5, text: 'Đồ ăn ngon lắm' },
-        { id: 3, user: 'Uyên Thi', date: '15:20 11/02/2025', rating: 5, text: 'Tuyệt vời ông mặt trời' },
-        { id: 4, user: 'Phương Linh', date: '10:12 05/01/2025', rating: 3, text: 'Bình thường' },
-        { id: 5, user: 'Minh Khoa', date: '21:45 30/12/2024', rating: 2, text: 'Phục vụ chậm' },
-        { id: 6, user: 'Bảo Trâm', date: '08:30 20/12/2024', rating: 1, text: 'Không ngon' },
+        { id: 2, user: 'Mai Nhung', date: '13:24 27/10/2024', rating: 5, text: 'Vui vẻ' },
+        // { id: 3, user: 'Uyên Thi', date: '15:20 11/02/2025', rating: 5, text: 'Tuyệt vời ông mặt trời' },
+        // { id: 4, user: 'Phương Linh', date: '10:12 05/01/2025', rating: 3, text: 'Bình thường' },
+        // { id: 5, user: 'Minh Khoa', date: '21:45 30/12/2024', rating: 2, text: 'Phục vụ chậm' },
+        // { id: 6, user: 'Bảo Trâm', date: '08:30 20/12/2024', rating: 1, text: 'Không ngon' },
     ];
     // Tính toán dữ liệu đánh giá
     const { ratingsData, totalReviews, averageRating } = useMemo(() => {

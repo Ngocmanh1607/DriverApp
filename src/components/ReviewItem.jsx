@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
+import images from '../assets/images';
 const ReviewItem = ({ review }) => {
     return (
         <View style={styles.container}>
-            <Image source={require('../access/Images/avatar.png')} style={styles.avatar} />
+            <Image source={images.avatar} style={styles.avatar} />
             <View style={styles.content}>
                 <Text style={styles.userName}>{review.user}</Text>
                 <Text style={styles.date}>{review.date}</Text>
@@ -26,12 +26,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         padding: 10,
         borderRadius: 10,
-        marginBottom:5,
-        marginHorizontal:10,
+        marginBottom: 5,
+        marginHorizontal: 10,
     },
     avatar: {
-        justifyContent:'center',
-        alignSelf:'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
         width: 50,
         height: 50,
         borderRadius: 10,

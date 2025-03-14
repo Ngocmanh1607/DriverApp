@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { TabView, TabBar, SceneMap } from 'react-native-tab-view';
 import LoginScreen from './LoginScreen';
 import SignupScreen from './SignupScreen';
-
+import images from '../assets/images';
 const TabScreen = () => {
     LogBox.ignoreLogs(['A props object containing a "key" prop is being spread into JSX']);
 
@@ -54,7 +54,7 @@ const AuthScreen = () => {
     return (
         <View style={styles.container}>
             <View style={styles.topImageContainer}>
-                <Image source={require("../access/Images/Shipper.webp")} style={styles.topImage} />
+                <Image source={images.logo} style={styles.topImage} />
             </View>
             <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }] }]}>
                 <TabScreen />
