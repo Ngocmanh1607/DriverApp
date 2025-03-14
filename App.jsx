@@ -10,10 +10,10 @@ Mapbox.setAccessToken('sk.eyJ1IjoibmdvY21hbmgxNjA3IiwiYSI6ImNtM2N5bzY5dDFxbDIyan
 LogBox.ignoreAllLogs(true);
 const App = () => {
   return (
-    <NavigationContainer>
-      <StackNavigation />
-    </NavigationContainer>
-    // <Test />
+    // <NavigationContainer>
+    //   <StackNavigation />
+    // </NavigationContainer>
+    <Test />
   )
 }
 

@@ -100,7 +100,7 @@ const SignupScreen = () => {
                     </TouchableOpacity>
                 </View>
             </TouchableWithoutFeedback>
-            <TouchableOpacity style={styles.loginButtonContainer} onPress={() => navigation.navigate('QRScaner')}>
+            <TouchableOpacity style={styles.loginButtonContainer} onPress={() => navigation.navigate('Đăng kí thông tin')}>
                 <Text style={styles.buttonText}>Quét cccd</Text>
             </TouchableOpacity>
             {loading && <Loading />}
