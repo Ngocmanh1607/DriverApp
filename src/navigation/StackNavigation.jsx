@@ -13,7 +13,7 @@ import OrderScreen from '../screens/OrderScreen';
 import ReviewScreen from '../screens/ReviewScreen';
 import AccountScreen from '../screens/AccountScreen';
 import InformationScreen from '../screens/InformationScreen';
-import QRScanner from '../screens/QRScaner';
+import QRScanner from '../screens/QRScanner';
 import Test from '../screens/Test';
 
 const Stack = createStackNavigator();
@@ -116,7 +116,7 @@ const StackNavigation = () => {
                 options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Thông tin" }}
             />
             <Stack.Screen
-                name="QRScaner"
+                name="QRScanner"
                 component={QRScanner}
                 options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Scan QR" }}
             />

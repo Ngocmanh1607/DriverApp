@@ -1,11 +1,9 @@
 import React from 'react';
-import {
-    View, Text, TouchableOpacity, ScrollView, SafeAreaView,
-    Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Alert, } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../access/css/AccountStyle';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const AccountScreen = () => {
     const navigation = useNavigation();
 
@@ -53,6 +51,8 @@ const AccountScreen = () => {
                 text: 'Đăng xuất',
                 onPress: async () => {
                     try {
+                        await AsyncStorage.removeItem('accessToken');
+                        await AsyncStorage.removeItem('userId');
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'Auth' }],

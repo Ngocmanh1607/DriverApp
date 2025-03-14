@@ -4,6 +4,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { TextInput } from 'react-native-paper'
 const Test = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [imageUri, setImageUri] = useState();
     return (
         <View style={styles.container}>
             {
@@ -14,7 +15,7 @@ const Test = () => {
                 ) : (
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <View style={styles.avatarContainer}>
-                            <TouchableOpacity style={styles.imageContainer} onPress={openImagePicker}>
+                            <TouchableOpacity style={styles.imageContainer} onPress={() => { }}>
                                 {imageUri ? (
                                     <Image source={{ uri: imageUri }} style={styles.profileImage} />
                                 ) : (<FontAwesome name="user" size={60} color="black" style={{ paddingVertical: 6 }} />)}
