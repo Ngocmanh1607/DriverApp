@@ -16,7 +16,7 @@ import InformationScreen from '../screens/InformationScreen';
 import QRScanner from '../screens/QRScanner';
 import Test from '../screens/Test';
 import StatisticScreen from '../screens/StatisticScreen';
-
+import WalletScreen from '../screens/WalletScreen';
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -125,6 +125,11 @@ const StackNavigation = () => {
                 name="QRScanner"
                 component={QRScanner}
                 options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Scan QR" }}
+            />
+            <Stack.Screen
+                name="Wallet"
+                component={WalletScreen}
+                options={{ headerShown: true, headerBackTitle: "Quay lại", title: "Ví" }}
             />
         </Stack.Navigator>
     );

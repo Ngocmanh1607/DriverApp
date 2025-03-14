@@ -1,11 +1,9 @@
-const formatPrice = (amount) => {
+export const formatPrice = (amount) => {
     if (amount) {
-        if (typeof (amount) === 'string') {
-            parseInt(amount);
+        if (typeof amount === 'string') {
+            amount = parseFloat(amount);
         }
         return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
     }
-    else
-        return 0;
+    return '0 ₫';
 };
-export default formatPrice

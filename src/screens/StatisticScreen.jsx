@@ -10,7 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LineChart } from 'react-native-chart-kit';
 import StatisticCard from '../components/StatisticCard';
-import formatPrice from '../utils/formatPrice';
+import { formatPrice } from '../utils/formatPrice';
 import styles from '../assets/css/StatisticStyle';
 const StatisticScreen = () => {
     const [selectedPeriod, setSelectedPeriod] = useState('week');
