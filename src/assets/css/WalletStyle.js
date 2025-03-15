@@ -49,6 +49,12 @@ const styles = StyleSheet.create({
         color: '#333',
         fontSize: 14,
     },
+    actionButtonActive: {
+        backgroundColor: '#FF6347',
+        padding: 10,
+        borderRadius: 25,
+        marginBottom: 5,
+    },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',

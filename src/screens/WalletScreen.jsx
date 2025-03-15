@@ -179,13 +179,13 @@ const WalletScreen = () => {
                                 style={[styles.actionButton, withdrawType === 'bank' && styles.actionButtonActive]}
                                 onPress={() => setWithdrawType('bank')}
                             >
-                                <Text>Ngân hàng</Text>
+                                <Text style={styles.actionText}>Ngân hàng</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.actionButton, withdrawType === 'zalopay' && styles.actionButtonActive]}
                                 onPress={() => setWithdrawType('zalopay')}
                             >
-                                <Text>ZaloPay</Text>
+                                <Text style={styles.actionText}>ZaloPay</Text>
                             </TouchableOpacity>
                         </View>
 
