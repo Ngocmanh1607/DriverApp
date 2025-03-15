@@ -47,10 +47,17 @@ const LoginScreen = () => {
                     navigation.navigate('MainDrawer');
                 }
             } catch (error) {
-                console.log(error)
-                Alert.alert('Đăng nhập thất bại', 'Email hoặc mật khẩu không chính xác! Vui lòng thử lại');
-            }
-            finally {
+                if (error.message === 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng') {
+                    Alert.alert('Lỗi kết nối', error.message);
+                } else if (error.message === 'Có lỗi xảy ra từ phía server') {
+                    Alert.alert('Lỗi hệ thống', error.message);
+                } else if (error.message === 'Email hoặc mật khẩu không chính xác') {
+                    Alert.alert('Đăng nhập thất bại', error.message);
+                } else {
+                    Alert.alert('Lỗi', 'Đã có lỗi xảy ra. Vui lòng thử lại sau');
+                }
+                console.error('Login error:', error);
+            } finally {
                 setIsLoading(false);
             }
         }

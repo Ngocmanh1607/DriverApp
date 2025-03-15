@@ -7,25 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { acceptOrder, confirmOrder, getInfoUser, giveOrder, rejectOrder } from '../api/driverApi';
 import socket from '../api/socket';
-import styles from '../assets/css/MainStyle'
-const requestLocationPermission = async () => {
-    if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            {
-                title: 'Quyền truy cập vị trí',
-                message: 'Ứng dụng này cần quyền truy cập vị trí của bạn.',
-                buttonNeutral: 'Hỏi lại sau',
-                buttonNegative: 'Hủy',
-                buttonPositive: 'Đồng ý',
-            },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } else {
-        const status = await Geolocation.requestAuthorization('whenInUse');
-        return status === 'granted';
-    }
-};
+import styles from '../assets/css/MainStyle';
+import { requestLocationPermission } from '../utils/requestPermission';
+
 const MainScreen = () => {
     const navigation = useNavigation();
     const [shipperLocation, setShipperLocation] = useState(null);
@@ -35,6 +19,8 @@ const MainScreen = () => {
     const [route1, setRoute1] = useState([]);
     const [route2, setRoute2] = useState([]);
     const [ordersNew, setOrdersNew] = useState();
+
+    // Lấy ID tài xế khi khởi tạo
     useEffect(() => {
         const fetchDriverId = async () => {
             try {
@@ -43,120 +29,126 @@ const MainScreen = () => {
                 setDriverId(id);
                 socket.connect();
             } catch (error) {
-                console.error('Error fetching driver ID:', error);
+                console.error('Lỗi khi lấy ID tài xế:', error);
             }
         };
 
         fetchDriverId();
     }, []);
+
+    // Cập nhật vị trí tài xế lên server
     useEffect(() => {
         if (driver_id && shipperLocation) {
-            const driverId = driver_id;
             socket.emit('updateLocation', {
-                driverId,
+                driverId: driver_id,
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
         }
     }, [shipperLocation, driver_id]);
+
+    // Xử lý các sự kiện socket
     useEffect(() => {
         if (!driver_id) return;
-        socket.on('connect', () => {
-            socket.emit('joinDriver', driver_id);
-        });
 
-        socket.on('orderReceivedByDriver', (orders) => {
+        const handleOrderReceived = (orders) => {
             if (orders) {
                 console.log('Danh sách đơn hàng:', orders.orders);
                 setOrdersNew(orders.orders);
             }
-        });
-        socket.on('ordersListOfDriver', (orders) => {
-            if (!ordersNew && orders.order_status != 'ORDER_CONFIRMED' && orders.order_status != 'ORDER_CANCELED')
-                setOrdersNew(orders)
-        });
+        };
 
+        const handleOrdersList = (orders) => {
+            if (!ordersNew && orders.order_status !== 'ORDER_CONFIRMED' && orders.order_status !== 'ORDER_CANCELED') {
+                setOrdersNew(orders);
+            }
+        };
+
+        socket.on('connect', () => socket.emit('joinDriver', driver_id));
+        socket.on('orderReceivedByDriver', handleOrderReceived);
+        socket.on('ordersListOfDriver', handleOrdersList);
         socket.on('error', (error) => console.error('Lỗi socket:', error.message));
 
         return () => {
             socket.off('connect');
-            socket.off('disconnect');
-            socket.off('reconnect');
+            socket.off('orderReceivedByDriver');
+            socket.off('ordersListOfDriver');
+            socket.off('error');
         };
-    }, [driver_id]);
+    }, [driver_id, ordersNew]);
 
-    //Vị trí driver
+    // Theo dõi vị trí tài xế
     useEffect(() => {
         let watchId;
 
         const watchShipperLocation = async () => {
             const hasPermission = await requestLocationPermission();
             if (!hasPermission) {
-                console.log('Location permission not granted.');
+                console.log('Chưa được cấp quyền truy cập vị trí.');
                 return;
             }
 
-            // Bắt đầu theo dõi vị trí
             watchId = Geolocation.watchPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    console.log('Location fetched:', latitude, longitude);
                     setShipperLocation({ latitude, longitude });
                 },
-                (error) => console.error('Error fetching location:', error.message),
-                { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 }
+                (error) => console.error('Lỗi khi lấy vị trí:', error.message),
+                {
+                    enableHighAccuracy: true,
+                    distanceFilter: 10,
+                    interval: 10000
+                }
             );
         };
 
         watchShipperLocation();
         return () => {
-            if (watchId !== null) {
+            if (watchId) {
                 Geolocation.clearWatch(watchId);
             }
         };
     }, []);
+
+    // Cập nhật tuyến đường khi có thay đổi
     useEffect(() => {
         if (ordersNew && shipperLocation && restaurantLocation && userLocation) {
             getRoute(shipperLocation, restaurantLocation, setRoute1);
             getRoute(restaurantLocation, userLocation, setRoute2);
         }
     }, [ordersNew, shipperLocation, restaurantLocation, userLocation]);
-    //Lưu vào store
+
+    // Lưu tuyến đường vào bộ nhớ
     useEffect(() => {
         const saveUpdatedRoutes = async () => {
             try {
-                console.log('Đang lưu các tuyến đường vào bộ nhớ:', route1, route2);
-                await AsyncStorage.setItem(
-                    'routes',
-                    JSON.stringify({ route1, route2 })
-                );
-                console.log('Lưu tuyến đường thành công');
+                if (route1?.length > 0 && route2?.length > 0) {
+                    await AsyncStorage.setItem(
+                        'routes',
+                        JSON.stringify({ route1, route2 })
+                    );
+                    console.log('Đã lưu tuyến đường thành công');
+                }
             } catch (error) {
                 console.error('Lỗi khi lưu tuyến đường:', error);
             }
         };
 
-        if (route1?.length > 0 && route2?.length > 0) {
-            saveUpdatedRoutes();
-        } else {
-            console.log('Không có tuyến đường để lưu');
-        }
+        saveUpdatedRoutes();
     }, [route1, route2]);
-    //Khôi phục
+
+    // Khôi phục tuyến đường từ bộ nhớ
     useEffect(() => {
         const restoreRoutesFromStorage = async () => {
             try {
                 const savedRoutes = await AsyncStorage.getItem('routes');
                 if (savedRoutes) {
                     const { route1: savedRoute1 = [], route2: savedRoute2 = [] } = JSON.parse(savedRoutes);
-                    console.log('Khôi phục tuyến đường từ bộ nhớ:', savedRoute1, savedRoute2);
                     setRoute1(Array.isArray(savedRoute1) ? savedRoute1 : []);
                     setRoute2(Array.isArray(savedRoute2) ? savedRoute2 : []);
-                } else {
-                    console.log('Không tìm thấy tuyến đường đã lưu trong bộ nhớ');
                 }
             } catch (error) {
-                console.error('Lỗi khi khôi phục tuyến đường từ bộ nhớ:', error.message);
+                console.error('Lỗi khi khôi phục tuyến đường:', error);
             }
         };
 
@@ -166,9 +158,8 @@ const MainScreen = () => {
     const clearRoutesFromStorage = async () => {
         try {
             await AsyncStorage.removeItem('routes');
-            console.log('Routes cleared from storage');
         } catch (error) {
-            console.error('Error clearing routes from storage:', error);
+            console.error('Lỗi khi xóa tuyến đường:', error);
         }
     };
 
@@ -182,35 +173,16 @@ const MainScreen = () => {
             );
             setRoute(routeCoordinates);
         } catch (error) {
-            console.error('Error fetching route:', error);
+            console.error('Lỗi khi lấy tuyến đường:', error);
         }
     };
-    const getDirections = async () => {
-        const direction = await MapAPi.getDirections({
-            vehicle: 'bike',
-            origin: currentLocation,
-            destination: locations,
-        });
 
-        const decodePolyline = (encoded) => {
-            const decoded = polyline.decode(encoded);
-            return decoded.map(point => ({
-                latitude: point[0],
-                longitude: point[1],
-            }));
-        };
-
-        const coordinates = decodePolyline(
-            direction.routes[0].overview_polyline.points,
-        );
-
-        setRoute(coordinates);
-    };
     const handlePress = () => {
-        navigation.navigate("OrderDetail", { ordersNew })
-    }
-    const handleAccept = () => {
-        const fetchAcceptOrder = async () => {
+        navigation.navigate("OrderDetail", { ordersNew });
+    };
+
+    const handleAccept = async () => {
+        try {
             const response = await acceptOrder(ordersNew.id);
             if (response.latitudeUser && response.longtitudeUser) {
                 const updatedUserLocation = {
@@ -221,63 +193,127 @@ const MainScreen = () => {
                     latitude: parseFloat(response.latitudeRes),
                     longitude: parseFloat(response.longtitudeRes),
                 };
+
                 setUserLocation(updatedUserLocation);
                 setRestaurantLocation(updatedResLocation);
+
                 getRoute(shipperLocation, updatedResLocation, setRoute1);
                 getRoute(updatedResLocation, updatedUserLocation, setRoute2);
-                // Cập nhật trạng thái đơn hàng
-                setOrdersNew((prevOrders) => ({
-                    ...prevOrders,
+
+                setOrdersNew(prev => ({
+                    ...prev,
                     order_status: "DELIVERING",
                 }));
-            } else {
-                console.error("Invalid location data:", response);
             }
-        };
-        fetchAcceptOrder();
-    };
-    const handleReject = async () => {
-        try {
-            await rejectOrder(ordersNew.id);
-            setOrdersNew(null);
-            setRoute1([]);
-            setRoute2([]);
-            setRestaurantLocation(null);
-            setUserLocation(null);
         } catch (error) {
-            console.error("Error rejecting the order:", error);
+            console.error("Lỗi khi chấp nhận đơn hàng:", error);
         }
     };
 
-    const handleComplete = () => {
-        const fetchConfirmOrder = async () => {
-            await confirmOrder(ordersNew.id);
+    const handleReject = async () => {
+        try {
+            await rejectOrder(ordersNew.id);
+            resetOrderState();
+        } catch (error) {
+            console.error("Lỗi khi từ chối đơn hàng:", error);
         }
-        fetchConfirmOrder();
-        setOrdersNew((prevOrders) => ({
-            ...prevOrders,
-            order_status: "ORDER_CONFIRMED",
-        }));
-        clearRoutesFromStorage();
-        setOrdersNew();
+    };
+
+    const handleComplete = async () => {
+        try {
+            await confirmOrder(ordersNew.id);
+            setOrdersNew(prev => ({
+                ...prev,
+                order_status: "ORDER_CONFIRMED",
+            }));
+            resetOrderState();
+            clearRoutesFromStorage();
+        } catch (error) {
+            console.error("Lỗi khi hoàn thành đơn hàng:", error);
+        }
+    };
+
+    const handleGiveOrder = async () => {
+        try {
+            await giveOrder(ordersNew.id);
+            setOrdersNew(prev => ({
+                ...prev,
+                order_status: "GIVED ORDER",
+            }));
+        } catch (error) {
+            console.error("Lỗi khi giao đơn hàng:", error);
+        }
+    };
+
+    const resetOrderState = () => {
+        setOrdersNew(null);
         setRoute1([]);
         setRoute2([]);
-        setRestaurantLocation();
-        setUserLocation();
-    }
-    const handleGiveOrder = () => {
-        const fetchGiveOrder = async () => {
-            await giveOrder(ordersNew.id);
+        setRestaurantLocation(null);
+        setUserLocation(null);
+    };
+
+    const renderOrderStatus = () => {
+        if (!ordersNew) {
+            return (
+                <View style={styles.noOrderContainer}>
+                    <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
+                </View>
+            );
         }
-        fetchGiveOrder();
-        setOrdersNew((prevOrders) => ({
-            ...prevOrders,
-            order_status: "GIVED ORDER", // Thay đổi trạng thái thành "ACCEPTED"
-        }));
-    }
+
+        switch (ordersNew.order_status) {
+            case "PREPARING_ORDER":
+                return (
+                    <>
+                        <TouchableOpacity
+                            style={[styles.acceptButton, { backgroundColor: "#33CC66" }]}
+                            onPress={handleAccept}
+                        >
+                            <Text style={styles.buttonText}>Chấp nhận</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.rejectButton, { backgroundColor: "#FF4D4D" }]}
+                            onPress={handleReject}
+                        >
+                            <Text style={styles.buttonText}>Từ chối</Text>
+                        </TouchableOpacity>
+                    </>
+                );
+            case "DELIVERING":
+                return (
+                    <TouchableOpacity
+                        style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
+                        onPress={handleGiveOrder}
+                    >
+                        <Text style={styles.buttonText}>Nhận đơn hàng</Text>
+                    </TouchableOpacity>
+                );
+            case "GIVED ORDER":
+                return (
+                    <TouchableOpacity
+                        style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
+                        onPress={handleComplete}
+                    >
+                        <Text style={styles.buttonText}>Hoàn tất</Text>
+                    </TouchableOpacity>
+                );
+            case "ORDER_CONFIRMED":
+                return <Text>Giao hàng thành công</Text>;
+            case "ORDER_CANCELED":
+                return (
+                    <View style={styles.noOrderContainer}>
+                        <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
+                    </View>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
         <View style={styles.container}>
-            <MapboxGL.MapView style={styles.map}  >
+            <MapboxGL.MapView style={styles.map}>
                 <MapboxGL.Camera
                     centerCoordinate={
                         shipperLocation ? [shipperLocation.longitude, shipperLocation.latitude] : [0, 0]
@@ -288,7 +324,7 @@ const MainScreen = () => {
 
                 {shipperLocation && (
                     <MapboxGL.PointAnnotation
-                        id="customMarker"
+                        id="shipperMarker"
                         coordinate={[shipperLocation.longitude, shipperLocation.latitude]}
                     >
                         <View>
@@ -296,9 +332,10 @@ const MainScreen = () => {
                         </View>
                     </MapboxGL.PointAnnotation>
                 )}
+
                 {ordersNew && restaurantLocation && (
                     <MapboxGL.PointAnnotation
-                        id="customMarker"
+                        id="restaurantMarker"
                         coordinate={[restaurantLocation.longitude, restaurantLocation.latitude]}
                     >
                         <View>
@@ -306,9 +343,10 @@ const MainScreen = () => {
                         </View>
                     </MapboxGL.PointAnnotation>
                 )}
+
                 {ordersNew && userLocation && (
                     <MapboxGL.PointAnnotation
-                        id="customMarker"
+                        id="userMarker"
                         coordinate={[userLocation.longitude, userLocation.latitude]}
                     >
                         <View>
@@ -317,44 +355,57 @@ const MainScreen = () => {
                     </MapboxGL.PointAnnotation>
                 )}
 
-                {/* Route từ shipper đến nhà hàng */}
                 {ordersNew && route1 && (
-                    <MapboxGL.ShapeSource id="route1" shape={{
-                        type: 'Feature',
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: route1.map(coord => [coord.longitude, coord.latitude])
-                        }
-                    }}>
-                        <MapboxGL.LineLayer id="lineLayer1" style={{
-                            lineColor: "#FF5733", lineWidth: 4, lineCap: 'round',
-                            lineJoin: 'round',
-                        }} />
+                    <MapboxGL.ShapeSource
+                        id="route1"
+                        shape={{
+                            type: 'Feature',
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: route1.map(coord => [coord.longitude, coord.latitude])
+                            }
+                        }}
+                    >
+                        <MapboxGL.LineLayer
+                            id="lineLayer1"
+                            style={{
+                                lineColor: "#FF5733",
+                                lineWidth: 4,
+                                lineCap: 'round',
+                                lineJoin: 'round',
+                            }}
+                        />
                     </MapboxGL.ShapeSource>
                 )}
 
-                {/* Route từ nhà hàng đến user */}
                 {ordersNew && route2 && (
-                    <MapboxGL.ShapeSource id="route2" shape={{
-                        type: 'Feature',
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: route2.map(coord => [coord.longitude, coord.latitude])
-                        }
-                    }}>
-                        <MapboxGL.LineLayer id="lineLayer2" style={{ lineColor: "#33FF57", lineWidth: 4 }} />
+                    <MapboxGL.ShapeSource
+                        id="route2"
+                        shape={{
+                            type: 'Feature',
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: route2.map(coord => [coord.longitude, coord.latitude])
+                            }
+                        }}
+                    >
+                        <MapboxGL.LineLayer
+                            id="lineLayer2"
+                            style={{
+                                lineColor: "#33FF57",
+                                lineWidth: 4
+                            }}
+                        />
                     </MapboxGL.ShapeSource>
                 )}
-
             </MapboxGL.MapView>
 
-            {/* Floating Order Card */}
             <View style={styles.orderCard}>
                 {ordersNew ? (
                     <>
                         <View style={styles.orderDetailContainer}>
                             <Text style={styles.orderTitle}>Đơn hàng mới</Text>
-                            <TouchableOpacity onPress={() => handlePress()}>
+                            <TouchableOpacity onPress={handlePress}>
                                 <Text style={styles.detail}>Chi tiết</Text>
                             </TouchableOpacity>
                         </View>
@@ -362,54 +413,17 @@ const MainScreen = () => {
                         <Text style={styles.address}>📍 {ordersNew.address_receiver}</Text>
 
                         <View style={styles.buttonContainer}>
-                            {ordersNew.order_status === "PREPARING_ORDER" ? (
-                                <>
-                                    <TouchableOpacity
-                                        style={[styles.acceptButton, { backgroundColor: "#33CC66" }]}
-                                        onPress={() => handleAccept()}
-                                    >
-                                        <Text style={styles.buttonText}>Accept</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.rejectButton, { backgroundColor: "#FF4D4D" }]}
-                                        onPress={() => handleReject()}
-                                    >
-                                        <Text style={styles.buttonText}>Reject</Text>
-                                    </TouchableOpacity>
-                                </>
-                            ) : ordersNew.order_status === "DELIVERING" ? (
-                                <TouchableOpacity
-                                    style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
-                                    onPress={() => handleGiveOrder()}
-                                >
-                                    <Text style={styles.buttonText}>Nhận đơn hàng</Text>
-                                </TouchableOpacity>
-                            ) : (
-                                ordersNew.order_status === "GIVED ORDER" ? (
-                                    <TouchableOpacity
-                                        style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
-                                        onPress={() => handleComplete()}
-                                    >
-                                        <Text style={styles.buttonText}>Hoàn tất</Text>
-                                    </TouchableOpacity>
-                                ) : ordersNew.order_status === "ORDER_CANCELED" ? (
-                                    <View style={styles.noOrderContainer}>
-                                        <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
-                                    </View>
-                                ) : (
-                                    <Text>Giao hàng thành công</Text>
-                                ))}
+                            {renderOrderStatus()}
                         </View>
-
-                    </>) : (
+                    </>
+                ) : (
                     <View style={styles.noOrderContainer}>
                         <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
                     </View>
-                )
-                }
-            </View >
-        </View >
+                )}
+            </View>
+        </View>
     );
 };
-export default MainScreen;
 
+export default MainScreen;

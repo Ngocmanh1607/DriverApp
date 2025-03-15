@@ -15,15 +15,8 @@ const signupApi = async (email, password) => {
                 }
             }
         );
-        const { message, metadata } = response.data;
-        if (!message) {
-            console.error('Error message:', message);
-            return;
-        }
-
         const { accessToken, refreshToken } = metadata.tokens;
         const { email: userEmail, id: userId } = metadata.user;
-
         console.log('Data stored successfully:', {
             accessToken,
             refreshToken,
@@ -40,15 +33,15 @@ const signupApi = async (email, password) => {
 
         return response.data.metadata;
     } catch (error) {
-        if (error.response) {
-            console.error("Lỗi từ server:", error.response.data);
-            const serverError = error.response.data?.message || "Có lỗi xảy ra từ phía server.";
-            throw new Error(serverError);
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
         } else if (error.request) {
-            throw new Error("Không nhận được phản hồi từ server. Vui lòng kiểm tra kết nối mạng.");
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
         } else {
-            console.error("Lỗi không xác định:", error.message);
-            throw new Error("Đã xảy ra lỗi không xác định. Vui lòng thử lại.");
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
         }
     }
 };
@@ -69,8 +62,7 @@ const loginApi = async (email, password) => {
         );
         const { message, metadata } = response.data;
         if (!message) {
-            console.error('Error message:', message);
-            return; // Or throw an error
+            throw new Error('Không nhận được phản hồi từ server');
         }
 
         const { accessToken, refreshToken } = metadata.tokens;
@@ -92,18 +84,32 @@ const loginApi = async (email, password) => {
 
         return metadata;
     } catch (error) {
-        console.error("Login failed:", error);
-        throw error;
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 };
+
 const updateDriver = async (driver) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    console.log(accessToken)
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!driver || !driver.name) {
+            throw new Error("Thông tin cập nhật không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.put(`/profile`,
             {
                 profile: {
@@ -121,21 +127,39 @@ const updateDriver = async (driver) => {
                 }
             }
         );
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error(error);
-        throw error;
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const updateLicenseDriver = async (info) => {
-    console.log(info);
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    console.log(accessToken)
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!info || !info.name || !info.license_plate) {
+            throw new Error("Thông tin xe không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.put(`/driver`,
             {
                 driver: {
@@ -151,20 +175,39 @@ const updateLicenseDriver = async (info) => {
                 }
             }
         );
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error(error);
-        throw error;
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const acceptOrder = async (orderId) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    console.log(accessToken)
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!orderId) {
+            throw new Error("Mã đơn hàng không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`driver/accept/${orderId}`,
             {
                 headers: {
@@ -174,21 +217,39 @@ const acceptOrder = async (orderId) => {
                 }
             }
         );
-        console.log(response.data.metadata)
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error(error);
-        throw error;
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const rejectOrder = async (orderId) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    console.log(accessToken)
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!orderId) {
+            throw new Error("Mã đơn hàng không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`/driver/reject/${orderId}`,
             {
                 headers: {
@@ -198,22 +259,39 @@ const rejectOrder = async (orderId) => {
                 }
             }
         );
-        console.log(response.data.metadata)
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error(error);
-        throw error;
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const confirmOrder = async (orderId) => {
-    console.log(orderId)
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    console.log(accessToken)
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!orderId) {
+            throw new Error("Mã đơn hàng không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`/driver/confirm/${orderId}`,
             {
                 headers: {
@@ -223,20 +301,35 @@ const confirmOrder = async (orderId) => {
                 }
             }
         );
-        console.log(response.data.metadata)
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error(error);
-        throw error;
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const getInfoUser = async () => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`/driver/detail`,
             {
                 headers: {
@@ -246,20 +339,40 @@ const getInfoUser = async () => {
                 }
             }
         );
-        await AsyncStorage.setItem('driverId', response.data.metadata.Driver.id.toString())
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
+        await AsyncStorage.setItem('driverId', response.data.metadata.Driver.id.toString());
         return response.data.metadata;
     } catch (error) {
-        console.error('Error fetching user info:', error);
-        throw new Error('Failed to fetch user info');
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const giveOrder = async (orderId) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!orderId) {
+            throw new Error("Mã đơn hàng không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`/driver/give/${orderId}`,
             {
                 headers: {
@@ -269,19 +382,39 @@ const giveOrder = async (orderId) => {
                 }
             }
         );
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error('Error fetching user info:', error);
-        throw new Error('Failed to fetch user info');
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 const getOrder = async (driverId) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!driverId) {
+            throw new Error("ID tài xế không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`/driver/${driverId}/order`,
             {
                 headers: {
@@ -291,23 +424,41 @@ const getOrder = async (driverId) => {
                 }
             }
         );
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error('Error fetching user info:', error);
-        throw new Error('Failed to fetch user info');
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
-const changeStatus = async (driver_id) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
-    try {
-        const response = await apiClient.put(`/driver/${driver_id}`,
-            {
 
-            },
+const changeStatus = async (driver_id) => {
+    try {
+        if (!driver_id) {
+            throw new Error("ID tài xế không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
+        const response = await apiClient.put(`/driver/${driver_id}`,
+            {},
             {
                 headers: {
                     "x-api-key": apiKey,
@@ -316,20 +467,39 @@ const changeStatus = async (driver_id) => {
                 }
             }
         );
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
     } catch (error) {
-        console.error('Error fetching user info:', error);
-        throw new Error('Failed to fetch user info');
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
 
 const getReview = async (driverId) => {
-    const userId = await AsyncStorage.getItem('userId');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    if (!userId || !accessToken) {
-        throw new Error("User not logged in");
-    }
     try {
+        if (!driverId) {
+            throw new Error("ID tài xế không hợp lệ");
+        }
+
+        const userId = await AsyncStorage.getItem('userId');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+
+        if (!userId || !accessToken) {
+            throw new Error("Người dùng chưa đăng nhập");
+        }
+
         const response = await apiClient.get(`/review/${driverId}/driver`,
             {
                 headers: {
@@ -339,10 +509,24 @@ const getReview = async (driverId) => {
                 }
             }
         );
+
+        if (!response || !response.data || !response.data.metadata) {
+            throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
+        }
+
         return response.data.metadata;
-    } catch {
-        console.error('Error fetching user info:', error);
-        throw new Error('Failed to fetch user info');
+    } catch (error) {
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        } else if (error.response) {
+            throw new Error('Có lỗi xảy ra từ phía server');
+        } else if (error.request) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng');
+        } else {
+            console.error('Lỗi:', error.message);
+            throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+        }
     }
 }
+
 export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder, changeStatus, getReview };
