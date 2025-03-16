@@ -1,15 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Platform, PermissionsAndroid } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
-import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { acceptOrder, confirmOrder, getInfoUser, giveOrder, rejectOrder } from '../api/driverApi';
 import socket from '../api/socket';
 import styles from '../assets/css/MainStyle';
-import { requestLocationPermission } from '../utils/requestPermission';
-
+// import { requestLocationPermission } from '../utils/requestPermission';
+import Geolocation from 'react-native-geolocation-service';
+const requestLocationPermission = async () => {
+    if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+                title: 'Quyền truy cập vị trí',
+                message: 'Ứng dụng này cần quyền truy cập vị trí của bạn.',
+                buttonNeutral: 'Hỏi lại sau',
+                buttonNegative: 'Hủy',
+                buttonPositive: 'Đồng ý',
+            },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } else {
+        const status = await Geolocation.requestAuthorization('whenInUse');
+        return status === 'granted';
+    }
+};
 const MainScreen = () => {
     const navigation = useNavigation();
     const [shipperLocation, setShipperLocation] = useState(null);
@@ -80,14 +97,12 @@ const MainScreen = () => {
     // Theo dõi vị trí tài xế
     useEffect(() => {
         let watchId;
-
         const watchShipperLocation = async () => {
             const hasPermission = await requestLocationPermission();
             if (!hasPermission) {
                 console.log('Chưa được cấp quyền truy cập vị trí.');
                 return;
             }
-
             watchId = Geolocation.watchPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
@@ -325,10 +340,9 @@ const MainScreen = () => {
                 {shipperLocation && (
                     <MapboxGL.PointAnnotation
                         id="shipperMarker"
-                        coordinate={[shipperLocation.longitude, shipperLocation.latitude]}
-                    >
+                        coordinate={[shipperLocation.longitude, shipperLocation.latitude]}>
                         <View>
-                            <Text style={styles.markerText}>🛵</Text>
+                            <Text style={styles.markerText}>📍</Text>
                         </View>
                     </MapboxGL.PointAnnotation>
                 )}
