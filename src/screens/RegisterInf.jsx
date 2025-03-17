@@ -18,7 +18,6 @@ const RegisterInf = ({ route }) => {
     const navigation = useNavigation();
     const [info, setInfo] = useState({
         id: '',
-        cmnd: '',
         fullName: '',
         dob: '',
         gender: '',
@@ -100,7 +99,7 @@ const RegisterInf = ({ route }) => {
 
     const handleSaveChanges = async () => {
         // Kiểm tra các trường bắt buộc
-        if (!info.fullName || !info.phone || !info.dob || !info.address || !info.cccdFront || !info.cccdBack) {
+        if (!info.fullName || !info.phone_number || !info.dob || !info.address || !info.cccdFront || !info.cccdBack) {
             Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
             return;
         }
@@ -110,7 +109,7 @@ const RegisterInf = ({ route }) => {
             return;
         }
         // Kiểm tra định dạng số điện thoại
-        if (!validatePhoneNumber(info.phone)) {
+        if (!validatePhoneNumber(info.phone_number)) {
             Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
             return;
         }
@@ -134,6 +133,8 @@ const RegisterInf = ({ route }) => {
                     onPress: async () => {
                         try {
                             setIsLoading(true);
+                            console.log(info);
+                            console.log(bike);
                             // const url = await uploadFirebase(imageUri);
                             // if (!url) {
                             //     Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
@@ -306,8 +307,8 @@ const RegisterInf = ({ route }) => {
                                         style={[styles.cccdImageContainer, { alignSelf: 'center' }]}
                                         onPress={() => openImagePicker('cavet')}
                                     >
-                                        {info.cavet ? (
-                                            <Image source={{ uri: info.cavet }} style={styles.cccdImage} />
+                                        {bike.cavet ? (
+                                            <Image source={{ uri: bike.cavet }} style={styles.cccdImage} />
                                         ) : (
                                             <View style={styles.cccdPlaceholder}>
                                                 <FontAwesome name="camera" size={24} color="#666" />

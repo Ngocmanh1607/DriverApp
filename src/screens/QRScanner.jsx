@@ -24,7 +24,6 @@ const QRScanner = () => {
 
         return {
             id: parts[0],
-            cmnd: parts[1],
             fullName: parts[2],
             dob: parts[3].slice(0, 2) + '-' + parts[3].slice(2, 4) + '-' + parts[3].slice(4),
             gender: parts[4],
