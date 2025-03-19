@@ -147,31 +147,42 @@ const updateDriver = async (driver) => {
     }
 }
 
-const updateLicenseDriver = async (info) => {
+const registerDriver = async (info) => {
     try {
-        if (!info || !info.name || !info.license_plate) {
-            throw new Error("Thông tin xe không hợp lệ");
-        }
+        // if (!info || !info.name || !info.license_plate) {
+        //     throw new Error("Thông tin xe không hợp lệ");
+        // }
 
         const userId = await AsyncStorage.getItem('userId');
         const accessToken = await AsyncStorage.getItem('accessToken');
 
-        if (!userId || !accessToken) {
-            throw new Error("Người dùng chưa đăng nhập");
-        }
-
+        // if (!userId || !accessToken) {
+        //     throw new Error("Người dùng chưa đăng nhập");
+        // }
+        console.log(info);
         const response = await apiClient.put(`/driver`,
             {
                 driver: {
-                    car_name: info.name,
-                    license_plate: info.license_plate
+                    cic: info.id,
+                    image: info.image,
+                    fullName: info.fullName,
+                    dob: info.dob,
+                    gender: info.gender,
+                    address: info.address,
+                    date: info.date,
+                    phone_number: info.phone_number,
+                    cccdFront: info.cccdFront,
+                    cccdBack: info.cccdBack,
+                    license_plate: info.license_plate,
+                    car_name: info.car_name,
+                    cavet: info.cavet
                 }
             },
             {
                 headers: {
                     "x-api-key": apiKey,
-                    "authorization": accessToken,
-                    "x-client-id": userId,
+                    "authorization": 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwiZW1haWwiOiJOZ29jbWFuaGZjMTIzQGdtYWlsLmNvbSIsInJvbGUiOiJkcml2ZXIiLCJpYXQiOjE3NDIyMjg4NDgsImV4cCI6MTc0MjQwMTY0OH0.CE0N1s6tkXQQWCIZAFHEyKEqdy_Wl5YaSAxCASnQUzrtWlq3TQfgnMsx45oziIIbkCisYmDToSMiONd7kcMqFcFn578CLiRTuE8Drz7eQXNR03GExr2pvs-39uPgO3awBIdlFN4GOKQ7WYeLyKphh9PgYLm-mhnbMiltSG1YtDuxFwPgs7Iu7xeM1MjGXYBAq4hU8FB-WtRbG9W81jIA0TDoCWH6ZZOAtdKzqU1NwFUm5hPb_aRg2rPANt1sTkEtkQqua5Ync6OTNQsSB9aFz63DxOjn3_rtz_Wb7YfuP-rU82C1elvOxPL4TVwSSWG50-WBhzs9IuUPNLIsL8CRrg',
+                    "x-client-id": 24,
                 }
             }
         );
@@ -529,4 +540,4 @@ const getReview = async (driverId) => {
     }
 }
 
-export { signupApi, loginApi, updateDriver, updateLicenseDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder, changeStatus, getReview };
+export { signupApi, loginApi, updateDriver, registerDriver, acceptOrder, rejectOrder, confirmOrder, getInfoUser, giveOrder, getOrder, changeStatus, getReview };

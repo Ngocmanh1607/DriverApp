@@ -53,7 +53,7 @@ const MainScreen = () => {
         fetchDriverId();
     }, []);
 
-    // Cập nhật vị trí tài xế lên server
+    // Cập nhật vị trí tài xế lên server và lưu vào AsyncStorage
     useEffect(() => {
         if (driver_id && shipperLocation) {
             socket.emit('updateLocation', {
@@ -61,6 +61,9 @@ const MainScreen = () => {
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
+
+            // Lưu vị trí shipper vào AsyncStorage
+            AsyncStorage.setItem('shipperLocation', JSON.stringify(shipperLocation));
         }
     }, [shipperLocation, driver_id]);
 
@@ -133,37 +136,50 @@ const MainScreen = () => {
         }
     }, [ordersNew, shipperLocation, restaurantLocation, userLocation]);
 
-    // Lưu tuyến đường vào bộ nhớ
+    // Lưu tuyến đường và vị trí vào bộ nhớ
     useEffect(() => {
         const saveUpdatedRoutes = async () => {
             try {
                 if (route1?.length > 0 && route2?.length > 0) {
                     await AsyncStorage.setItem(
                         'routes',
-                        JSON.stringify({ route1, route2 })
+                        JSON.stringify({
+                            route1,
+                            route2,
+                            restaurantLocation,
+                            shipperLocation
+                        })
                     );
-                    console.log('Đã lưu tuyến đường thành công');
+                    console.log('Đã lưu tuyến đường và vị trí thành công');
                 }
             } catch (error) {
-                console.error('Lỗi khi lưu tuyến đường:', error);
+                console.error('Lỗi khi lưu tuyến đường và vị trí:', error);
             }
         };
 
         saveUpdatedRoutes();
-    }, [route1, route2]);
+    }, [route1, route2, restaurantLocation, shipperLocation]);
 
-    // Khôi phục tuyến đường từ bộ nhớ
+    // Khôi phục tuyến đường và vị trí từ bộ nhớ
     useEffect(() => {
         const restoreRoutesFromStorage = async () => {
             try {
                 const savedRoutes = await AsyncStorage.getItem('routes');
                 if (savedRoutes) {
-                    const { route1: savedRoute1 = [], route2: savedRoute2 = [] } = JSON.parse(savedRoutes);
+                    const {
+                        route1: savedRoute1 = [],
+                        route2: savedRoute2 = [],
+                        restaurantLocation: savedRestaurantLocation,
+                        shipperLocation: savedShipperLocation
+                    } = JSON.parse(savedRoutes);
+
                     setRoute1(Array.isArray(savedRoute1) ? savedRoute1 : []);
                     setRoute2(Array.isArray(savedRoute2) ? savedRoute2 : []);
+                    if (savedRestaurantLocation) setRestaurantLocation(savedRestaurantLocation);
+                    if (savedShipperLocation) setShipperLocation(savedShipperLocation);
                 }
             } catch (error) {
-                console.error('Lỗi khi khôi phục tuyến đường:', error);
+                console.error('Lỗi khi khôi phục tuyến đường và vị trí:', error);
             }
         };
 
@@ -384,7 +400,7 @@ const MainScreen = () => {
                             id="lineLayer1"
                             style={{
                                 lineColor: "#FF5733",
-                                lineWidth: 4,
+                                lineWidth: 3,
                                 lineCap: 'round',
                                 lineJoin: 'round',
                             }}
@@ -407,7 +423,9 @@ const MainScreen = () => {
                             id="lineLayer2"
                             style={{
                                 lineColor: "#33FF57",
-                                lineWidth: 4
+                                lineWidth: 3,
+                                lineCap: 'round',
+                                lineJoin: 'round',
                             }}
                         />
                     </MapboxGL.ShapeSource>

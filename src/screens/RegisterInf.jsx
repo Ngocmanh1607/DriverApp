@@ -7,7 +7,7 @@ import { uploadUserImage } from '../utils/firebaseUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextInput } from 'react-native-paper'
 import Snackbar from 'react-native-snackbar';
-import { updateDriver, updateLicenseDriver } from '../api/driverApi';
+import { registerDriver } from '../api/driverApi';
 import styles from '../assets/css/RegisterInfoStyle';
 const RegisterInf = ({ route }) => {
     useEffect(() => {
@@ -18,6 +18,7 @@ const RegisterInf = ({ route }) => {
     const navigation = useNavigation();
     const [info, setInfo] = useState({
         id: '',
+        image: '',
         fullName: '',
         dob: '',
         gender: '',
@@ -26,10 +27,8 @@ const RegisterInf = ({ route }) => {
         phone_number: '',
         cccdFront: '',
         cccdBack: '',
-    });
-    const [bike, setBike] = useState({
         license_plate: '',
-        name: '',
+        car_name: '',
         cavet: ''
     });
 
@@ -59,7 +58,7 @@ const RegisterInf = ({ route }) => {
                         setInfo(prev => ({ ...prev, cccdBack: imageUri }));
                         break;
                     case 'cavet':
-                        setBike(prev => ({ ...prev, cavet: imageUri }));
+                        setInfo(prev => ({ ...prev, cavet: imageUri }));
                         break;
                     default:
                         break;
@@ -98,26 +97,26 @@ const RegisterInf = ({ route }) => {
     };
 
     const handleSaveChanges = async () => {
-        // Kiểm tra các trường bắt buộc
-        if (!info.fullName || !info.phone_number || !info.dob || !info.address || !info.cccdFront || !info.cccdBack) {
-            Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
-            return;
-        }
-        // Kiểm tra thông tin xe
-        if (!bike.name || !bike.cavet) {
-            Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
-            return;
-        }
-        // Kiểm tra định dạng số điện thoại
-        if (!validatePhoneNumber(info.phone_number)) {
-            Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
-            return;
-        }
-        // Kiểm tra định dạng ngày sinh
-        if (!validateDate(info.dob)) {
-            Alert.alert('Thông báo', 'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)');
-            return;
-        }
+        // // Kiểm tra các trường bắt buộc
+        // if (!info.fullName || !info.phone_number || !info.dob || !info.address || !info.cccdFront || !info.cccdBack) {
+        //     Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
+        //     return;
+        // }
+        // // Kiểm tra thông tin xe
+        // if (!bike.name || !bike.cavet) {
+        //     Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
+        //     return;
+        // }
+        // // Kiểm tra định dạng số điện thoại
+        // if (!validatePhoneNumber(info.phone_number)) {
+        //     Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
+        //     return;
+        // }
+        // // Kiểm tra định dạng ngày sinh
+        // if (!validateDate(info.dob)) {
+        //     Alert.alert('Thông báo', 'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)');
+        //     return;
+        // }
         // Thông báo xác nhận trước khi đăng ký
         Alert.alert(
             'Xác nhận đăng ký',
@@ -133,29 +132,21 @@ const RegisterInf = ({ route }) => {
                     onPress: async () => {
                         try {
                             setIsLoading(true);
-                            console.log(info);
-                            console.log(bike);
                             // const url = await uploadFirebase(imageUri);
                             // if (!url) {
                             //     Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
                             //     return;
                             // }
-
-                            // // Lưu thông tin người dùng và xe
-                            // const profile = {
-                            //     ...userInfo,
-                            //     image: url,
-                            // };
                             // const response = await updateDriver(profile);
-                            // await updateLicenseDriver(bike);
+                            await registerDriver(info);
 
-                            // if (response) {
-                            //     Snackbar.show({
-                            //         text: 'Thông tin của bạn đã được cập nhật.',
-                            //         duration: Snackbar.LENGTH_SHORT,
-                            //     });
-                            //     navigation.navigate('MainDrawer');
-                            // }
+                            if (response) {
+                                Snackbar.show({
+                                    text: 'Thông tin của bạn đã được cập nhật.',
+                                    duration: Snackbar.LENGTH_SHORT,
+                                });
+                                navigation.navigate('MainDrawer');
+                            }
                         } catch (error) {
                             console.error('Error updating profile:', error);
                             Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
@@ -180,8 +171,8 @@ const RegisterInf = ({ route }) => {
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View style={styles.avatarContainer}>
                                 <TouchableOpacity style={styles.imageContainer} onPress={() => openImagePicker('avatar')}>
-                                    {imageUri ? (
-                                        <Image source={{ uri: imageUri }} style={styles.profileImage} />
+                                    {info.image ? (
+                                        <Image source={{ uri: info.image }} style={styles.profileImage} />
                                     ) : (<FontAwesome name="user" size={60} color="black" style={{ paddingVertical: 6 }} />)}
                                 </TouchableOpacity>
                             </View>
@@ -288,18 +279,18 @@ const RegisterInf = ({ route }) => {
                                     mode="outlined"
                                     activeOutlineColor="#e74c3c"
                                     placeholder="VD: 59A1-123.45"
-                                    value={bike.license_plate || ''}
+                                    value={info.license_plate || ''}
                                     style={styles.input}
-                                    onChangeText={(text) => setBike({ ...bike, license_plate: text })}
+                                    onChangeText={(text) => setInfo({ ...info, license_plate: text })}
                                 />
                                 <TextInput
                                     label="Tên xe"
                                     mode="outlined"
                                     activeOutlineColor="#e74c3c"
-                                    value={bike.name || ''}
+                                    value={info.car_name || ''}
                                     style={styles.input}
                                     placeholder="VD: Honda Wave, Yamaha Sirius..."
-                                    onChangeText={(text) => setBike({ ...bike, name: text })}
+                                    onChangeText={(text) => setInfo({ ...info, car_name: text })}
                                 />
                                 <View style={styles.imageUploadContainer}>
                                     <Text style={styles.label}>Hình ảnh đăng ký xe (Cà vẹt)</Text>
@@ -307,8 +298,8 @@ const RegisterInf = ({ route }) => {
                                         style={[styles.cccdImageContainer, { alignSelf: 'center' }]}
                                         onPress={() => openImagePicker('cavet')}
                                     >
-                                        {bike.cavet ? (
-                                            <Image source={{ uri: bike.cavet }} style={styles.cccdImage} />
+                                        {info.cavet ? (
+                                            <Image source={{ uri: info.cavet }} style={styles.cccdImage} />
                                         ) : (
                                             <View style={styles.cccdPlaceholder}>
                                                 <FontAwesome name="camera" size={24} color="#666" />
