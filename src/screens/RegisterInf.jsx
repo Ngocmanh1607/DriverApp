@@ -3,12 +3,11 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, Act
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { uploadUserImage } from '../utils/firebaseUtils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextInput } from 'react-native-paper'
 import Snackbar from 'react-native-snackbar';
 import { registerDriver } from '../api/driverApi';
 import styles from '../assets/css/RegisterInfoStyle';
+import { uploadImageToCloudinary } from '../utils/cloudinaryUtils';
 const RegisterInf = ({ route }) => {
     useEffect(() => {
         if (route.params?.scannedInfo) {
@@ -49,7 +48,8 @@ const RegisterInf = ({ route }) => {
                 const imageUri = res.assets[0].uri;
                 switch (type) {
                     case 'avatar':
-                        setImageUri(imageUri);
+                        setInfo(prev => ({ ...prev, image: imageUri }));
+
                         break;
                     case 'cccdFront':
                         setInfo(prev => ({ ...prev, cccdFront: imageUri }));
@@ -73,17 +73,10 @@ const RegisterInf = ({ route }) => {
         }
     };
 
-    const uploadFirebase = async (image, imageType) => {
-        try {
-            const userId = await AsyncStorage.getItem('userId');
-            const imageUrl = await uploadUserImage(userId, image, imageType);
-            return imageUrl;
-        } catch (error) {
-            console.error("Error uploading image:", error);
-            return null;
-        }
+    const uploadCloudinary = async (image, name) => {
+        const imageUrl = await uploadImageToCloudinary(image, name);
+        return imageUrl;
     };
-
     // Validate định dạng số điện thoại (ví dụ: Việt Nam)
     const validatePhoneNumber = (phoneNumber) => {
         const phoneRegex = /^(\+84|0)\d{9}$/; // Ví dụ: +84 hoặc 0 theo sau là 9 số
@@ -132,14 +125,19 @@ const RegisterInf = ({ route }) => {
                     onPress: async () => {
                         try {
                             setIsLoading(true);
-                            // const url = await uploadFirebase(imageUri);
-                            // if (!url) {
-                            //     Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
-                            //     return;
-                            // }
-                            // const response = await updateDriver(profile);
+                            const url_name = await uploadCloudinary(info.image, 'avatar');
+                            const url_cccdFront = await uploadCloudinary(info.cccdFront, 'cccdFront');
+                            const url_cccdBack = await uploadCloudinary(info.cccdBack, 'cccdBack');
+                            const url_cavet = await uploadCloudinary(info.cavet, 'cavet');
+                            if (!url_name || !url_cccdFront || !url_cccdBack || !url_cavet) {
+                                Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+                                return;
+                            }
+                            info.image = url_name;
+                            info.cccdFront = url_cccdFront;
+                            info.cccdBack = url_cccdBack;
+                            info.cavet = url_cavet;
                             await registerDriver(info);
-
                             if (response) {
                                 Snackbar.show({
                                     text: 'Thông tin của bạn đã được cập nhật.',
@@ -147,12 +145,14 @@ const RegisterInf = ({ route }) => {
                                 });
                                 navigation.navigate('MainDrawer');
                             }
-                        } catch (error) {
+                        }
+                        catch (error) {
                             console.error('Error updating profile:', error);
                             Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
                         } finally {
                             setIsLoading(false);
                         }
+
                     }
                 }
             ]

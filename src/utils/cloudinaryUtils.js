@@ -1,57 +1,44 @@
 import axios from 'axios';
+import { cloudinaryConfig } from './cloudinaryConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+export const uploadImageToCloudinary = async (imageUri, name) => {
+    const driverId = await AsyncStorage.getItem('driverId');
+    const formData = new FormData();
 
-// Thay thế bằng Cloudinary URL và upload preset của bạn
-const CLOUDINARY_URL = 'CLOUDINARY_URL=cloudinary://873868239175211:FDuKWC9biNoFknIKSbcSxlQqMss@dt6hoe0sh';
-const UPLOAD_PRESET = 'Driver';
+    // Lấy tên file từ đường dẫn
+    const fileName = imageUri.split('/').pop();
+    console.log(fileName);
+    // Đoán loại MIME từ đuôi file
+    const match = /\.(\w+)$/.exec(fileName);
+    const type = match ? `image/${match[1]}` : 'image';
 
-/**
- * Upload ảnh lên Cloudinary
- * @param {string} imageUri - URI của ảnh cần upload
- * @param {string} folder - Thư mục lưu trữ trên Cloudinary (tùy chọn)
- * @returns {Promise<string>} URL của ảnh sau khi upload
- */
-export const uploadToCloudinary = async (imageUri, folder = '') => {
+    formData.append('file', {
+        uri: imageUri,
+        name: name,
+        type: type,
+    });
+    // formData.append('overwrite', true);
+
+    formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+
+    if (driverId) {
+        formData.append('folder', driverId);
+        formData.append('create_folder', true);
+    }
     try {
-        // Tạo form data
-        const formData = new FormData();
-        formData.append('file', {
-            uri: imageUri,
-            type: 'image/jpeg',
-            name: 'upload.jpg'
-        });
-        formData.append('upload_preset', UPLOAD_PRESET);
-        if (folder) {
-            formData.append('folder', folder);
-        }
-
-        // Upload ảnh lên Cloudinary
-        const response = await axios.post(CLOUDINARY_URL, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+        const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             }
-        });
-
-        // Trả về URL của ảnh
-        return response.data.secure_url;
+        );
+        console.log('Đường dẫn ảnh:', response.data.secure_url);
+        return response.data;
     } catch (error) {
-        console.error('Error uploading to Cloudinary:', error);
-        throw new Error('Không thể tải ảnh lên. Vui lòng thử lại.');
+        console.error('Lỗi khi tải lên Cloudinary:', error);
+        throw error;
     }
 };
-
-/**
- * Upload nhiều ảnh lên Cloudinary
- * @param {string[]} imageUris - Mảng các URI của ảnh cần upload
- * @param {string} folder - Thư mục lưu trữ trên Cloudinary (tùy chọn)
- * @returns {Promise<string[]>} Mảng các URL của ảnh sau khi upload
- */
-export const uploadMultipleToCloudinary = async (imageUris, folder = '') => {
-    try {
-        const uploadPromises = imageUris.map(uri => uploadToCloudinary(uri, folder));
-        const urls = await Promise.all(uploadPromises);
-        return urls;
-    } catch (error) {
-        console.error('Error uploading multiple images to Cloudinary:', error);
-        throw new Error('Không thể tải ảnh lên. Vui lòng thử lại.');
-    }
-}; 
