@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
+import { Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -10,12 +10,13 @@ import Snackbar from 'react-native-snackbar';
 import { updateDriver, updateLicenseDriver, getInfoUser } from '../api/driverApi';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import styles from '../assets/css/ProfileStyle';
+import { formatDate } from '../utils/format';
 const Profile = ({ route }) => {
     const [isEditing, setIsEditing] = useState(false);
     const navigation = useNavigation();
     const [info, setInfo] = useState({
         id: '',
-        cmnd: '',
+        image: '',
         fullName: '',
         dob: '',
         gender: '',
@@ -24,16 +25,12 @@ const Profile = ({ route }) => {
         phone_number: '',
         cccdFront: '',
         cccdBack: '',
-        image: ''
-    });
-    const [bike, setBike] = useState({
         license_plate: '',
-        name: '',
+        car_name: '',
         cavet: ''
     });
-
+    const [image, setImage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [imageUri, setImageUri] = useState('');
 
     useEffect(() => {
         if (route.params?.scannedInfo) {
@@ -44,20 +41,25 @@ const Profile = ({ route }) => {
         const fetchInfoUser = async () => {
             try {
                 const response = await getInfoUser();
-                setUserInfo({
-                    name: response.name,
+                console.log("response", response)
+                setInfo({
+                    id: response.Driver.cic,
                     image: response.image,
+                    fullName: response.fullName,
+                    dob: response.Driver.dob,
+                    gender: response.Driver.gender,
+                    address: response.Driver.address,
+                    date: response.Driver.dob,
                     phone_number: response.phone_number,
-                    date: response.date.split('T')[0],
-                })
-                setImageUri(response.image)
-                setBike({
+                    cccdFront: response.Driver.cccdFront,
+                    cccdBack: response.Driver.cccdBack,
                     license_plate: response.Driver.license_plate,
-                    name: response.Driver.car_name,
+                    car_name: response.Driver.car_name,
+                    cavet: response.Driver.cavet
                 })
-                console.log(response)
+                setImage(response.image);
             } catch (error) {
-                console.error('Error fetching user info:', error);
+                Alert.alert('Lỗi', 'Không thể lấy thông tin người dùng. Vui lòng thử lại sau');
             }
         }
         fetchInfoUser();
@@ -100,7 +102,7 @@ const Profile = ({ route }) => {
         }
     };
 
-    const uploadFirebase = async (image, imageType) => {
+    const uploadImage = async (image, imageType) => {
         try {
             const userId = await AsyncStorage.getItem('userId');
             const imageUrl = await uploadUserImage(userId, image, imageType);
@@ -154,23 +156,17 @@ const Profile = ({ route }) => {
                         text: 'Lưu',
                         onPress: async () => {
                             try {
-                                const profile = { ...userInfo };
+                                const profile = { ...info };
                                 setIsLoading(true);
-                                console.log(imageUri, userInfo.image);
-
-                                // Upload image if it has changed
-                                if (imageUri !== userInfo.image) {
-                                    const url = await uploadFirebase(imageUri);
+                                if (image !== info.image) {
+                                    const url = await uploadImage(image, 'avatar');
                                     if (!url) {
                                         Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
                                         return;
                                     }
                                     profile.image = url;
                                 }
-
-                                // Update profile and bike info
                                 const response = await updateDriver(profile);
-                                await updateLicenseDriver(bike);
                                 if (response) {
                                     Snackbar.show({
                                         text: 'Thông tin của bạn đã được cập nhật.',
@@ -179,7 +175,6 @@ const Profile = ({ route }) => {
                                     navigation.navigate('MainDrawer');
                                 }
                             } catch (error) {
-                                console.error('Error updating profile:', error);
                                 Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.');
                             } finally {
                                 setIsLoading(false);
@@ -204,12 +199,12 @@ const Profile = ({ route }) => {
                     </View>
                 ) : (
                     <View>
-                        <TouchableWithoutFeedback onPress={() => setIsEditing(false)}>
+                        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <ScrollView showsVerticalScrollIndicator={false}>
                                 <View style={styles.avatarContainer}>
                                     <TouchableOpacity style={styles.imageContainer} onPress={() => openImagePicker('avatar')} disabled={!isEditing}>
-                                        {imageUri ? (
-                                            <Image source={{ uri: imageUri }} style={styles.profileImage} />
+                                        {image ? (
+                                            <Image source={{ uri: image }} style={styles.profileImage} />
                                         ) : (<FontAwesome name="user" size={60} color="black" style={{ paddingVertical: 6 }} />)}
                                     </TouchableOpacity>
                                 </View>
@@ -251,7 +246,7 @@ const Profile = ({ route }) => {
                                             outlineColor="#666"
                                             editable={isEditing}
                                             placeholder="VD: 12/12/1990"
-                                            value={info.dob || ''}
+                                            value={formatDate(info.dob) || ''}
                                             style={[styles.input, { width: '64%' }]}
                                             onChangeText={(text) => setInfo({ ...info, dob: text })}
                                         />
@@ -274,7 +269,7 @@ const Profile = ({ route }) => {
                                         outlineColor="#666"
                                         editable={isEditing}
                                         placeholder="VD: 0909090909"
-                                        value={info.phone_number || ''}
+                                        value={info.phone_number.toString() || ''}
                                         style={styles.input}
                                         onChangeText={(text) => setInfo({ ...info, phone_number: text })}
                                     />
@@ -332,9 +327,9 @@ const Profile = ({ route }) => {
                                         outlineColor="#666"
                                         editable={isEditing}
                                         placeholder="VD: 59A1-123.45"
-                                        value={bike.license_plate || ''}
+                                        value={info.license_plate || ''}
                                         style={styles.input}
-                                        onChangeText={(text) => setBike({ ...bike, license_plate: text })}
+                                        onChangeText={(text) => setInfo({ ...info, license_plate: text })}
                                     />
                                     <TextInput
                                         label="Tên xe"
@@ -342,10 +337,10 @@ const Profile = ({ route }) => {
                                         activeOutlineColor={isEditing ? "#e74c3c" : "#666"}
                                         outlineColor="#666"
                                         editable={isEditing}
-                                        value={bike.name || ''}
+                                        value={info.car_name || ''}
                                         style={styles.input}
                                         placeholder="VD: Honda Wave, Yamaha Sirius..."
-                                        onChangeText={(text) => setBike({ ...bike, name: text })}
+                                        onChangeText={(text) => setInfo({ ...info, car_name: text })}
                                     />
                                     <View style={styles.imageUploadContainer}>
                                         <Text style={styles.label}>Hình ảnh đăng ký xe (Cà vẹt)</Text>
