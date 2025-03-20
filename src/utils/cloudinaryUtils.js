@@ -2,7 +2,7 @@ import axios from 'axios';
 import { cloudinaryConfig } from './cloudinaryConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 export const uploadImageToCloudinary = async (imageUri, name) => {
-    const driverId = await AsyncStorage.getItem('driverId');
+    const userId = await AsyncStorage.getItem('userId');
     const formData = new FormData();
 
     // Lấy tên file từ đường dẫn
@@ -21,8 +21,8 @@ export const uploadImageToCloudinary = async (imageUri, name) => {
 
     formData.append('upload_preset', cloudinaryConfig.uploadPreset);
 
-    if (driverId) {
-        formData.append('folder', driverId);
+    if (userId) {
+        formData.append('folder', userId);
         formData.append('create_folder', true);
     }
     try {
@@ -36,7 +36,7 @@ export const uploadImageToCloudinary = async (imageUri, name) => {
             }
         );
         console.log('Đường dẫn ảnh:', response.data.secure_url);
-        return response.data;
+        return response.data.secure_url;
     } catch (error) {
         console.error('Lỗi khi tải lên Cloudinary:', error);
         throw error;
