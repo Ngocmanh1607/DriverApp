@@ -3,6 +3,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -46,6 +51,16 @@ const styles = StyleSheet.create({
         width: 40,
         textAlign: 'right',
         fontSize: 14,
+    },
+    noReviewsContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    noReviewsText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#777',
     },
 })
 export default styles;
