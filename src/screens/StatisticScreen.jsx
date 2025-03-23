@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -11,24 +11,182 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LineChart } from 'react-native-chart-kit';
 import StatisticCard from '../components/StatisticCard';
 import { formatPrice } from '../utils/formatPrice';
+import { checkDateInCurrentWeek, checkDateInMonth, getWeekOfMonth } from '../utils/utilsTime';
 import styles from '../assets/css/StatisticStyle';
+import { getInfoUser, getOrder } from '../api/driverApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getReview } from '../api/driverApi';
 const StatisticScreen = () => {
-    const [selectedPeriod, setSelectedPeriod] = useState('week');
-    const statistics = {
-        totalOrders: 150,
-        completedOrders: 142,
-        cancelledOrders: 8,
-        totalEarnings: 15000000,
-        averageRating: 4.8,
-        weeklyData: {
+    const [selectedPeriod, setSelectedPeriod] = useState('day');
+    const [driverId, setDriverId] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [orders, setOrders] = useState([]);
+    const [averageRating, setAverageRating] = useState(0);
+    const [statistics, setStatistics] = useState({
+        totalOrders: 0,
+        completedOrders: 0,
+        cancelledOrders: 0,
+        totalEarnings: 0,
+        dailyData: {
             labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
-            earnings: [500000, 700000, 600000, 800000, 1000000, 1200000, 900000],
-            orders: [5, 7, 6, 8, 10, 12, 9],
+            earnings: Array(7).fill(0),
+            orders: Array(7).fill(0),
         },
-    };
-
-
+        weeklyData: {
+            labels: ['T1', 'T2', 'T3', 'T4', ''],
+            earnings: Array(5).fill(0),
+            orders: Array(5).fill(0),
+        },
+        monthlyData: {
+            labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+            earnings: Array(12).fill(0),
+            orders: Array(12).fill(0),
+        },
+    });
+    const calculateStatistics = () => {
+        const stats = {
+            totalEarnings: 0,
+            totalOrders: 0,
+            completedOrders: 0,
+            cancelledOrders: 0,
+            dailyData: {
+                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                earnings: Array(7).fill(0),
+                orders: Array(7).fill(0),
+            },
+            weeklyData: {
+                labels: ['T1', 'T2', 'T3', 'T4', ''],
+                earnings: Array(5).fill(0),
+                orders: Array(5).fill(0),
+            },
+            monthlyData: {
+                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                earnings: Array(12).fill(0),
+                orders: Array(12).fill(0),
+            }
+        };
+        if (selectedPeriod === 'day') {
+            const day = new Date().getDate();
+            orders.forEach(order => {
+                const orderDate = new Date(order.order_date).getDate();
+                if (orderDate === day) {
+                    if (order.order_status === 'ORDER_CONFIRMED') {
+                        stats.totalEarnings += parseFloat(order.delivery_fee.toString());
+                        stats.completedOrders++;
+                    } else if (order.order_status === 'ORDER_CANCELLED') {
+                        stats.cancelledOrders++;
+                    }
+                    stats.totalOrders++;
+                }
+                if (checkDateInCurrentWeek(order.order_date)) {
+                    if (order.order_status === 'ORDER_CONFIRMED') {
+                        const dayOrder = new Date(order.order_date).getDay();
+                        stats.dailyData.earnings[dayOrder - 1] += parseFloat(order.delivery_fee.toString());
+                        stats.dailyData.orders[dayOrder - 1]++;
+                    }
+                }
+            });
+            return stats;
+        }
+        else if (selectedPeriod === 'week') {
+            orders.forEach(order => {
+                if (checkDateInCurrentWeek(order.order_date)) {
+                    if (order.order_status === 'ORDER_CONFIRMED') {
+                        stats.totalEarnings += parseFloat(order.delivery_fee.toString());
+                        stats.completedOrders++;
+                    } else if (order.order_status === 'ORDER_CANCELLED') {
+                        stats.cancelledOrders++;
+                    }
+                    stats.totalOrders++;
+                }
+                if (checkDateInMonth(order.order_date)) {
+                    if (order.order_status === 'ORDER_CONFIRMED') {
+                        const dayOfWeek = getWeekOfMonth(order.order_date);
+                        stats.weeklyData.earnings[dayOfWeek - 1] += parseFloat(order.delivery_fee.toString());
+                        stats.weeklyData.orders[dayOfWeek - 1]++;
+                    }
+                }
+            });
+            return stats;
+        }
+        else if (selectedPeriod === 'month') {
+            orders.forEach(order => {
+                if (checkDateInMonth(order.order_date)) {
+                    if (order.order_status === 'ORDER_CONFIRMED') {
+                        stats.totalEarnings += parseFloat(order.delivery_fee.toString());
+                        stats.completedOrders++;
+                    } else if (order.order_status === 'ORDER_CANCELLED') {
+                        stats.cancelledOrders++;
+                    }
+                    stats.totalOrders++;
+                }
+                const orderDate = new Date(order.order_date);
+                const currentYear = new Date().getFullYear();
+                const month = orderDate.getMonth(); // Lấy tháng (0 - 11)
+                if (order.order_status === 'ORDER_CONFIRMED' && orderDate.getFullYear() === currentYear) {
+                    stats.monthlyData.earnings[month] += parseFloat(order.delivery_fee.toString());
+                    stats.monthlyData.orders[month]++;
+                }
+            });
+            return stats;
+        }
+    }
+    // get order
+    useEffect(() => {
+        const fetchOrder = async () => {
+            try {
+                const response = await getOrder(driverId);
+                console.log(response);
+                setOrders(response);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        }
+        fetchOrder();
+        const newStats = calculateStatistics();
+        setStatistics(newStats);
+    }, [driverId]);
+    //get driver ID
+    useEffect(() => {
+        const fetchDriverId = async () => {
+            try {
+                setIsLoading(true);
+                await getInfoUser();
+                const id = await AsyncStorage.getItem('driverId');
+                setDriverId(id);
+            } catch (error) {
+                console.error('Error fetching driver ID:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchDriverId();
+    }, []);
+    // get review
+    useEffect(() => {
+        const fetchReviews = async () => {
+            setIsLoading(true);
+            try {
+                if (driverId) {
+                    const response = await getReview(driverId);
+                    const avg = response.reduce((sum, review) => sum + review.dri_rating, 0) / response.length;
+                    setAverageRating(avg);
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy đánh giá:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchReviews();
+    }, [driverId]);
+    useEffect(() => {
+        const newStats = calculateStatistics();
+        setStatistics(newStats);
+    }, [orders, selectedPeriod])
     const renderChart = () => {
+        let data, labels;
         const chartConfig = {
             backgroundGradientFrom: '#fff',
             backgroundGradientTo: '#fff',
@@ -36,16 +194,33 @@ const StatisticScreen = () => {
             strokeWidth: 2,
             barPercentage: 0.5,
         };
-
+        switch (selectedPeriod) {
+            case 'day':
+                data = statistics.dailyData;
+                labels = statistics.dailyData.labels;
+                break;
+            case 'week':
+                data = statistics.weeklyData;
+                labels = statistics.weeklyData.labels;
+                break;
+            case 'month':
+                data = statistics.monthlyData;
+                labels = statistics.monthlyData.labels;
+                break;
+            default:
+                data = statistics.dailyData;
+                labels = statistics.dailyData.labels;
+                break;
+        }
         return (
             <View style={styles.chartContainer}>
                 <Text style={styles.chartTitle}>Biểu đồ thu nhập</Text>
                 <LineChart
                     data={{
-                        labels: statistics.weeklyData.labels,
+                        labels: labels,
                         datasets: [
                             {
-                                data: statistics.weeklyData.earnings.map(val => val / 100000), // Chia để hiển thị đẹp hơn
+                                data: data.earnings.map(val => val / 1000),
                             },
                         ],
                     }}
@@ -58,66 +233,30 @@ const StatisticScreen = () => {
             </View>
         );
     };
-
-
-    const PeriodSelector = () => (
-        <View style={styles.periodContainer}>
-            <TouchableOpacity
-                style={[
-                    styles.periodButton,
-                    selectedPeriod === 'week' && styles.periodButtonActive,
-                ]}
-                onPress={() => setSelectedPeriod('week')}
-            >
-                <Text
-                    style={[
-                        styles.periodButtonText,
-                        selectedPeriod === 'week' && styles.periodButtonTextActive,
-                    ]}
-                >
-                    Tuần
-                </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[
-                    styles.periodButton,
-                    selectedPeriod === 'month' && styles.periodButtonActive,
-                ]}
-                onPress={() => setSelectedPeriod('month')}
-            >
-                <Text
-                    style={[
-                        styles.periodButtonText,
-                        selectedPeriod === 'month' && styles.periodButtonTextActive,
-                    ]}
-                >
-                    Tháng
-                </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[
-                    styles.periodButton,
-                    selectedPeriod === 'year' && styles.periodButtonActive,
-                ]}
-                onPress={() => setSelectedPeriod('year')}
-            >
-                <Text
-                    style={[
-                        styles.periodButtonText,
-                        selectedPeriod === 'year' && styles.periodButtonTextActive,
-                    ]}
-                >
-                    Năm
-                </Text>
-            </TouchableOpacity>
-        </View>
-    );
-
+    const handlePeriodChange = (period) => {
+        setSelectedPeriod(period);
+    }
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView>
                 <View style={styles.header}>
-                    <PeriodSelector />
+                    <View style={styles.periodContainer}>
+                        <TouchableOpacity
+                            style={[styles.periodButton, selectedPeriod === 'day' && styles.periodButtonActive]}
+                            onPress={() => handlePeriodChange('day')}>
+                            <Text style={[styles.periodButtonText, selectedPeriod === 'day' && styles.periodButtonTextActive,]}>Ngày</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.periodButton, selectedPeriod === 'week' && styles.periodButtonActive]}
+                            onPress={() => handlePeriodChange('week')}>
+                            <Text style={[styles.periodButtonText, selectedPeriod === 'week' && styles.periodButtonTextActive]}>Tuần</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.periodButton, selectedPeriod === 'month' && styles.periodButtonActive]}
+                            onPress={() => handlePeriodChange('month')}>
+                            <Text style={[styles.periodButtonText, selectedPeriod === 'month' && styles.periodButtonTextActive]}>Tháng</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <View style={styles.statsGrid}>
                     <StatisticCard
@@ -154,14 +293,14 @@ const StatisticScreen = () => {
                         <View style={styles.orderStatItem}>
                             <Text style={styles.orderStatLabel}>Tỷ lệ hoàn thành</Text>
                             <Text style={styles.orderStatValue}>
-                                {((statistics.completedOrders / statistics.totalOrders) * 100).toFixed(1)}%
+                                {statistics.totalOrders > 0 ? `${((statistics.completedOrders / statistics.totalOrders) * 100).toFixed(1)}%` : "100%"}
                             </Text>
                         </View>
                         <View style={styles.orderStatItem}>
                             <Text style={styles.orderStatLabel}>Đánh giá trung bình</Text>
                             <View style={styles.ratingContainer}>
                                 <Icon name="star" size={20} color="#FFC107" />
-                                <Text style={styles.orderStatValue}>{statistics.averageRating}</Text>
+                                <Text style={styles.orderStatValue}>{averageRating}</Text>
                             </View>
                         </View>
                     </View>
@@ -170,5 +309,4 @@ const StatisticScreen = () => {
         </SafeAreaView>
     );
 };
-
 export default StatisticScreen;

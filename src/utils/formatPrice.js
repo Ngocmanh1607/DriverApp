@@ -1,9 +1,15 @@
 export const formatPrice = (amount) => {
-    if (amount) {
-        if (typeof amount === 'string') {
-            amount = parseFloat(amount);
-        }
-        return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    if (amount == null || isNaN(amount)) {
+        return '0 ₫';
     }
-    return '0 ₫';
+
+    if (typeof amount === 'string') {
+        const parsedAmount = parseFloat(amount);
+        if (isNaN(parsedAmount)) {
+            return '0 ₫';
+        }
+        amount = parsedAmount;
+    }
+
+    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 };

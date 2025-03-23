@@ -354,7 +354,6 @@ const getInfoUser = async () => {
         if (!response || !response.data || !response.data.metadata) {
             throw new Error("Không nhận được phản hồi hợp lệ từ máy chủ");
         }
-
         await AsyncStorage.setItem('driverId', response.data.metadata.Driver.id.toString());
         return response.data.metadata;
     } catch (error) {
