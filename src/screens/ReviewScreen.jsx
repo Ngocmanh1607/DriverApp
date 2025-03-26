@@ -32,7 +32,6 @@ const ReviewScreen = () => {
             try {
                 if (driverId) {
                     const response = await getReview(driverId);
-                    console.log(response);
                     setReviews(response);
                 }
             } catch (error) {
