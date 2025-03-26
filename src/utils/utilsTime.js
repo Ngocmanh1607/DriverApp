@@ -39,7 +39,7 @@ const getWeekOfMonth = (dateToCheck) => {
     const offset = startOfMonth.getDay(); // Thứ của ngày đầu tiên trong tháng (0: Chủ Nhật, 1: Thứ Hai, ...)
 
     // Tính tuần trong tháng (Math.ceil để làm tròn lên)
-    const weekNumber = Math.ceil((dayOfMonth + offset) / 7);
+    const weekNumber = Math.floor((dayOfMonth + offset) / 7);
 
     return weekNumber;
 };
