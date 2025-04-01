@@ -1,6 +1,6 @@
 import { View, Text, LogBox } from 'react-native'
 import React from 'react'
-import './gesture-handler';
+// import './gesture-handler';
 import Mapbox from '@rnmapbox/maps'
 import { NavigationContainer } from '@react-navigation/native'
 import StackNavigation from './src/navigation/StackNavigation'
@@ -13,7 +13,6 @@ const App = () => {
     <NavigationContainer>
       <StackNavigation />
     </NavigationContainer>
-    // <RegisterInf />
   )
 }
 

@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         paddingVertical: 10,
+        color: '#333'
     },
     inputPassIcon: {
         marginHorizontal: 10,
