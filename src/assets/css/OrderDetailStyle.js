@@ -17,6 +17,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333'
     },
+    resDes: {
+        fontSize: 16,
+        fontWeight: '300',
+        color: '#333'
+    },
+    markerText: {
+        fontSize: 20,
+    },
     driverDetails: {
         marginLeft: 10,
     },
@@ -104,7 +112,8 @@ const styles = StyleSheet.create({
     },
     orderId: {
         fontSize: 14,
-        fontWeight: 'bold',
+        fontWeight: '600',
+        color: "#333"
     },
     orderTime: {
         fontSize: 14,

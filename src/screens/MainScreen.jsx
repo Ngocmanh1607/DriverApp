@@ -43,6 +43,8 @@ const MainScreen = () => {
             try {
                 await getInfoUser();
                 const id = await AsyncStorage.getItem('driverId');
+                console.log('id shipper: ', id);
+
                 setDriverId(id);
                 socket.connect();
             } catch (error) {
@@ -61,7 +63,9 @@ const MainScreen = () => {
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
-
+            socket.on("locationUpdated", (data) => {
+                console.log(data.message);
+            });
             // Lưu vị trí shipper vào AsyncStorage
             AsyncStorage.setItem('shipperLocation', JSON.stringify(shipperLocation));
         }
@@ -320,7 +324,7 @@ const MainScreen = () => {
                         <Text style={styles.buttonText}>Nhận đơn hàng</Text>
                     </TouchableOpacity>
                 );
-            case "GIVED ORDER":
+            case "ORDER_RECEIVED":
                 return (
                     <TouchableOpacity
                         style={[styles.acceptButton, { backgroundColor: "#FF0000" }]}
@@ -349,7 +353,7 @@ const MainScreen = () => {
                     centerCoordinate={
                         shipperLocation ? [shipperLocation.longitude, shipperLocation.latitude] : [0, 0]
                     }
-                    zoomLevel={13}
+                    zoomLevel={17}
                     animationDuration={1000}
                 />
 

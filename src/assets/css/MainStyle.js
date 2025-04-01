@@ -23,8 +23,9 @@ const styles = StyleSheet.create({
     },
     orderTitle: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '600',
         marginBottom: 8,
+        color: "#333"
     },
     orderDetail: {
         fontSize: 14,
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     noOrderText: {
         fontSize: 16,
         fontWeight: '500',
+        color: '#333'
     },
     markerText: {
         fontSize: 20,

@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { formatPrice } from '../utils/formatPrice';
 import styles from '../assets/css/OrderDetailStyle';
+import { formatDate } from '../utils/format';
 const OrderDetailScreen = ({ route }) => {
     const { ordersNew } = route.params;
     const items = ordersNew.listCartItem
@@ -12,7 +13,7 @@ const OrderDetailScreen = ({ route }) => {
             {/* Order ID */}
             <View style={styles.orderIdContainer}>
                 <Text style={styles.orderId}>Mã đơn: {ordersNew.id}</Text>
-                <Text style={styles.orderTime}>{ordersNew.order_date}</Text>
+                <Text style={styles.orderTime}>{formatDate(ordersNew.order_date)}</Text>
             </View>
             <View style={styles.orderUser}>
                 <Text style={styles.orderId}>Người nhận: {ordersNew.receiver_name} - </Text>
