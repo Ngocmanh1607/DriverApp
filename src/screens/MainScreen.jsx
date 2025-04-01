@@ -63,9 +63,6 @@ const MainScreen = () => {
                 latitude: shipperLocation.latitude,
                 longitude: shipperLocation.longitude,
             });
-            socket.on("locationUpdated", (data) => {
-                console.log(data.message);
-            });
             // Lưu vị trí shipper vào AsyncStorage
             AsyncStorage.setItem('shipperLocation', JSON.stringify(shipperLocation));
         }
@@ -273,7 +270,7 @@ const MainScreen = () => {
             await giveOrder(ordersNew.id);
             setOrdersNew(prev => ({
                 ...prev,
-                order_status: "GIVED ORDER",
+                order_status: "ORDER_RECEIVED",
             }));
         } catch (error) {
             console.error("Lỗi khi giao đơn hàng:", error);
