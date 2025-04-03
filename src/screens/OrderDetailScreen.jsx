@@ -1,44 +1,54 @@
-import {Text, View, Image, TouchableOpacity, ScrollView} from 'react-native';
+import {Text, View, Image, ScrollView} from 'react-native';
 import React from 'react';
-import {useNavigation} from '@react-navigation/native';
 import {formatPrice} from '../utils/formatPrice';
 import styles from '../assets/css/OrderDetailStyle';
 import {formatDate} from '../utils/format';
+
 const OrderDetailScreen = ({route}) => {
   const {ordersNew} = route.params;
-  const items = ordersNew.listCartItem;
-  const navigation = useNavigation();
+  const items = ordersNew.listCartItem || [];
+  console.log(ordersNew);
   return (
     <ScrollView style={styles.container}>
       {/* Order ID */}
-      <View style={styles.orderIdContainer}>
-        <Text style={styles.orderId}>Mã đơn: {ordersNew.id}</Text>
-        <Text style={styles.orderTime}>{formatDate(ordersNew.order_date)}</Text>
+      <View style={styles.orderInfo}>
+        <View style={styles.orderIdContainer}>
+          <Text style={styles.orderId}>Mã đơn: {ordersNew.id}</Text>
+          <Text style={styles.orderTime}>
+            {formatDate(ordersNew.order_date)}
+          </Text>
+        </View>
+        <View style={styles.orderUser}>
+          <Text style={styles.orderId}>
+            Người nhận: {ordersNew.receiver_name || 'N/A'} -
+          </Text>
+          <Text style={styles.orderTime}>
+            {ordersNew.phone_number || 'N/A'}
+          </Text>
+        </View>
       </View>
-      <View style={styles.orderUser}>
-        <Text style={styles.orderId}>
-          Người nhận: {ordersNew.receiver_name} -{' '}
-        </Text>
-        <Text style={styles.orderTime}>{ordersNew.phone_number}</Text>
-      </View>
-      {/* Res Information */}
+
+      {/* Restaurant Information */}
       {ordersNew.Restaurant && (
-        <View style={styles.driverInfoContainer}>
+        <View style={styles.restaurantInfoContainer}>
           <Image
             source={{uri: ordersNew.Restaurant.image}}
-            style={styles.driverImage}
+            style={styles.restaurantImage}
           />
-          <View style={styles.driverDetails}>
-            <Text style={styles.resDetail}>{ordersNew.Restaurant.name}</Text>
-            <Text style={styles.resDes}>
+          <View style={styles.restaurantDetails}>
+            <Text style={styles.restaurantName}>
+              {ordersNew.Restaurant.name}
+            </Text>
+            <Text style={styles.restaurantDescription}>
               {ordersNew.Restaurant.description}
             </Text>
-            <Text style={styles.driverRating}>
+            <Text style={styles.restaurantRating}>
               ⭐ {ordersNew.Restaurant.rating || 5}
             </Text>
           </View>
         </View>
       )}
+
       {/* Ordered Items */}
       {items.map((item, index) => (
         <View key={index} style={styles.orderItemContainer}>
@@ -50,50 +60,44 @@ const OrderDetailScreen = ({route}) => {
                 item.toppings.length > 0 &&
                 item.toppings.map((topping, toppingIndex) => (
                   <Text key={toppingIndex} style={styles.orderItemOption}>
-                    {topping.topping_name}
+                    + {topping.topping_name}
                   </Text>
                 ))}
             </View>
           </View>
-          <View style={styles.orderInfPay}>
-            <Text style={styles.orderInfPayText}>
+          <View style={styles.orderItemInfo}>
+            <Text style={styles.orderItemQuantity}>
               Số lượng: {item.quantity}
             </Text>
-            <Text style={styles.orderInfPayText}>
-              {formatPrice(item.price)}
-            </Text>
+            <Text style={styles.orderItemPrice}>{formatPrice(item.price)}</Text>
           </View>
         </View>
       ))}
+
       {/* Note */}
       {ordersNew.note && (
         <View style={styles.noteContainer}>
-          <Text>Ghi chú: {ordersNew.note}</Text>
+          <Text style={styles.noteText}>Ghi chú: {ordersNew.note}</Text>
         </View>
       )}
+
       {/* Payment Information */}
       <View style={styles.paymentInfoContainer}>
-        <Text style={styles.paymentMethod}>Trả qua {ordersNew.order_pay}</Text>
-        {/* <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Chi tiết thanh toán</Text> */}
-        {/* Tạm tính */}
-        <View style={[styles.paymentContainer, {marginTop: 10}]}>
+        <Text style={styles.paymentMethod}>
+          Trả qua {ordersNew.order_pay || 'Tiền mặt'}
+        </Text>
+
+        <View style={[styles.paymentRow, {marginTop: 10}]}>
           <Text style={styles.paymentText}>Phí giao hàng:</Text>
           <Text style={styles.paymentText}>
-            {formatPrice(ordersNew.delivery_fee)}
+            {formatPrice(ordersNew.delivery_fee || 0)}
           </Text>
         </View>
-        {/* Giảm giá */}
-        {/* <View style={styles.paymentContainer}>
-                    <Text style={styles.paymentText}>Giảm giá</Text>
-                    <Text style={styles.paymentText}>21000 đ</Text>
-                </View> */}
-        {/* Tổng thu */}
-        <View style={styles.paymentSumContainer}>
-          <Text style={[styles.paymentText, {fontWeight: 'bold'}]}>
-            Tổng tính
-          </Text>
-          <Text style={[styles.paymentText, {fontWeight: 'bold'}]}>
-            {formatPrice(ordersNew.price)}
+
+        <View style={styles.paymentTotal}>
+          <Text style={styles.paymentTotalText}>Tổng tính</Text>
+          <Text style={styles.paymentTotalText}>
+            {formatPrice(ordersNew.price || 0)}
           </Text>
         </View>
       </View>
