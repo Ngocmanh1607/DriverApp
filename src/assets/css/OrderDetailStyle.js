@@ -1,152 +1,160 @@
-import { StyleSheet } from "react-native";
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f9f9f9',
-        padding: 10,
-    },
-    driverInfoContainer: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
-        flexDirection: 'row'
-    },
-    resDetail: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-    },
-    resDes: {
-        fontSize: 16,
-        fontWeight: '300',
-        color: '#333'
-    },
-    markerText: {
-        fontSize: 20,
-    },
-    driverDetails: {
-        marginLeft: 10,
-    },
-    driverImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 10
-    },
-    driverInfo: {
-        marginLeft: 10,
-    },
-    driverName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-    },
-    driverRating: {
-        color: '#888',
-    },
-    orderItemContainer: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
-    },
-    orderItemDetails: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    orderItemImage: {
-        width: 50,
-        height: 50,
-        borderRadius: 5,
-        marginRight: 10,
-    },
-    orderItemText: {
-        flex: 1,
-    },
-    orderItemName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-    },
-    orderItemOption: {
-        color: '#888',
-        fontSize: 14,
-    },
-    orderInfPay: {
-        flexDirection: 'row',
-        marginTop: 10,
-        alignItems: 'center',
-        justifyContent: 'space-between'
-    },
-    orderInfPayText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-    },
-    paymentInfoContainer: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
-    },
-    orderTotal: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginTop: 10,
-    },
-    orderIdContainer: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    orderUser: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-    },
-    orderId: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: "#333"
-    },
-    orderTime: {
-        fontSize: 14,
-        color: '#888',
-    },
-    paymentContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    paymentSumContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderTopWidth: 1,
-        borderTopColor: '#666',
-        marginTop: 10,
-        paddingTop: 10
-    },
-    completeButton: {
-        backgroundColor: '#FF0000',
-        paddingVertical: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    completeButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    paymentText: {
-        fontSize: 16,
-        color: '#333'
-    },
-});
+import {StyleSheet} from 'react-native';
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+  },
+  orderIdContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  orderId: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  orderTime: {
+    fontSize: 14,
+    color: '#666',
+  },
+  orderUser: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  driverInfoContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  driverImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  driverDetails: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  resDetail: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    color: '#333',
+  },
+  resDes: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  driverRating: {
+    fontSize: 14,
+    color: '#FF9500',
+  },
+  orderItemContainer: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  orderItemDetails: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  orderItemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  orderItemText: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  orderItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#333',
+  },
+  orderItemOption: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  orderInfPay: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  orderInfPayText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  noteContainer: {
+    backgroundColor: '#FFF9C4',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  paymentInfoContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  paymentMethod: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 8,
+  },
+  paymentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  paymentText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  paymentSumContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: 12,
+    marginTop: 8,
+  },
+};
 export default styles;
