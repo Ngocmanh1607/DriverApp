@@ -64,11 +64,11 @@ const SignupScreen = () => {
     if (validate()) {
       setLoading(true);
       try {
-        const response = await signupApi(email, password);
+        await signupApi(email, password);
         Alert.alert('Thành công', 'Đăng ký tài khoản thành công!', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Đăng kí thông tin'),
+            onPress: () => navigation.navigate('ConfirmEmail'),
           },
         ]);
       } catch (error) {
@@ -153,11 +153,6 @@ const SignupScreen = () => {
           </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>
-      <TouchableOpacity
-        style={styles.loginButtonContainer}
-        onPress={() => navigation.navigate('Đăng kí thông tin')}>
-        <Text style={styles.buttonText}>Quét cccd</Text>
-      </TouchableOpacity>
       {loading && <Loading />}
     </View>
   );

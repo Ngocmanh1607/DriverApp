@@ -15,6 +15,7 @@ import PasswordInput from '../components/PasswordInput';
 import {loginApi} from '../api/driverApi';
 import styles from '../assets/css/LoginStyle';
 import Loading from '../components/Loading';
+import checkRegister from '../utils/checkRegister';
 const LoginScreen = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
@@ -51,10 +52,7 @@ const LoginScreen = () => {
     if (validate()) {
       setIsLoading(true);
       try {
-        const response = await loginApi(email, password);
-        if (response) {
-          navigation.navigate('MainDrawer');
-        }
+        await loginApi(email, password);
       } catch (error) {
         if (
           error.message ===
@@ -70,6 +68,12 @@ const LoginScreen = () => {
         }
         console.error('Login error:', error);
       } finally {
+        const hasRegis = await checkRegister();
+        if (hasRegis) {
+          navigation.navigate('MainDrawer');
+        } else {
+          navigation.navigate('RegisterInf');
+        }
         setIsLoading(false);
       }
     }

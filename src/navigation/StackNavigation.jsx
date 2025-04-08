@@ -17,6 +17,7 @@ import QRScanner from '../screens/QRScanner';
 import Test from '../screens/Test';
 import StatisticScreen from '../screens/StatisticScreen';
 import WalletScreen from '../screens/WalletScreen';
+import ConfirmEmailScreen from '../screens/ConfirmEmailScreen';
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -70,9 +71,13 @@ const StackNavigation = () => {
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="Auth" component={AuthScreen} />
       <Stack.Screen
-        name="Đăng kí thông tin"
+        name="RegisterInf"
         component={RegisterInf}
-        options={{headerShown: true, headerBackTitle: 'Quay lại'}}
+        options={{
+          headerShown: true,
+          headerBackTitle: 'Quay lại',
+          title: 'Đăng kí thông tin',
+        }}
       />
       <Stack.Screen name="MainDrawer" component={MainDrawer} />
       <Stack.Screen
@@ -134,6 +139,7 @@ const StackNavigation = () => {
         component={WalletScreen}
         options={{headerShown: true, headerBackTitle: 'Quay lại', title: 'Ví'}}
       />
+      <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
     </Stack.Navigator>
   );
 };

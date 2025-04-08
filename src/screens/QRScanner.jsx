@@ -54,7 +54,7 @@ const QRScanner = () => {
       if (codes.length > 0) {
         const scannedData = codes[0].value;
         const parsedData = parseCCCDData(scannedData);
-        navigation.navigate('Đăng kí thông tin', {scannedInfo: parsedData});
+        navigation.navigate('RegisterInf', {scannedInfo: parsedData});
       }
     },
   });

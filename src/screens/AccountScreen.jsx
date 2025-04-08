@@ -36,11 +36,6 @@ const AccountScreen = () => {
       path: 'Wallet',
     },
     {
-      title: 'Lịch sử đơn hàng',
-      icon: 'history',
-      path: 'OrderHistory',
-    },
-    {
       title: 'Cài đặt',
       icon: 'settings',
       path: 'Settings',

@@ -16,23 +16,7 @@ const signupApi = async (email, password) => {
         },
       },
     );
-    const {accessToken, refreshToken} = metadata.tokens;
-    const {email: userEmail, id: userId} = metadata.user;
-    console.log('Data stored successfully:', {
-      accessToken,
-      refreshToken,
-      userEmail,
-      userId,
-    });
-
-    await AsyncStorage.multiSet([
-      ['accessToken', accessToken],
-      ['refreshToken', refreshToken],
-      ['userEmail', userEmail],
-      ['userId', userId.toString()],
-    ]);
-
-    return response.data.metadata;
+    return true;
   } catch (error) {
     if (error.response?.data?.message) {
       throw new Error(error.response.data.message);
@@ -164,9 +148,9 @@ const registerDriver = async info => {
     const userId = await AsyncStorage.getItem('userId');
     const accessToken = await AsyncStorage.getItem('accessToken');
 
-    // if (!userId || !accessToken) {
-    //     throw new Error("Người dùng chưa đăng nhập");
-    // }
+    if (!userId || !accessToken) {
+      throw new Error('Người dùng chưa đăng nhập');
+    }
     console.log(info);
     const response = await apiClient.put(
       `/driver`,
@@ -190,9 +174,8 @@ const registerDriver = async info => {
       {
         headers: {
           'x-api-key': apiKey,
-          authorization:
-            'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwiZW1haWwiOiJOZ29jbWFuaGZjMTIzQGdtYWlsLmNvbSIsInJvbGUiOiJkcml2ZXIiLCJpYXQiOjE3NDIyMjg4NDgsImV4cCI6MTc0MjQwMTY0OH0.CE0N1s6tkXQQWCIZAFHEyKEqdy_Wl5YaSAxCASnQUzrtWlq3TQfgnMsx45oziIIbkCisYmDToSMiONd7kcMqFcFn578CLiRTuE8Drz7eQXNR03GExr2pvs-39uPgO3awBIdlFN4GOKQ7WYeLyKphh9PgYLm-mhnbMiltSG1YtDuxFwPgs7Iu7xeM1MjGXYBAq4hU8FB-WtRbG9W81jIA0TDoCWH6ZZOAtdKzqU1NwFUm5hPb_aRg2rPANt1sTkEtkQqua5Ync6OTNQsSB9aFz63DxOjn3_rtz_Wb7YfuP-rU82C1elvOxPL4TVwSSWG50-WBhzs9IuUPNLIsL8CRrg',
-          'x-client-id': 24,
+          authorization: accessToken,
+          'x-client-id': userId,
         },
       },
     );
@@ -360,9 +343,8 @@ const getInfoUser = async () => {
         'x-client-id': userId,
       },
     });
-
     if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
+      return;
     }
     await AsyncStorage.setItem(
       'driverId',

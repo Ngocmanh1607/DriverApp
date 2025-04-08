@@ -99,25 +99,35 @@ const RegisterInf = ({route}) => {
   };
 
   const handleSaveChanges = async () => {
-    // // Kiểm tra các trường bắt buộc
-    // if (!info.fullName || !info.phone_number || !info.dob || !info.address || !info.cccdFront || !info.cccdBack) {
-    //     Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
-    //     return;
+    // Kiểm tra các trường bắt buộc
+    // if (
+    //   !info.fullName ||
+    //   !info.phone_number ||
+    //   !info.dob ||
+    //   !info.address ||
+    //   !info.cccdFront ||
+    //   !info.cccdBack
+    // ) {
+    //   Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
+    //   return;
     // }
     // // Kiểm tra thông tin xe
     // if (!bike.name || !bike.cavet) {
-    //     Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
-    //     return;
+    //   Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
+    //   return;
     // }
     // // Kiểm tra định dạng số điện thoại
     // if (!validatePhoneNumber(info.phone_number)) {
-    //     Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
-    //     return;
+    //   Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
+    //   return;
     // }
     // // Kiểm tra định dạng ngày sinh
     // if (!validateDate(info.dob)) {
-    //     Alert.alert('Thông báo', 'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)');
-    //     return;
+    //   Alert.alert(
+    //     'Thông báo',
+    //     'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)',
+    //   );
+    //   return;
     // }
     // Thông báo xác nhận trước khi đăng ký
     Alert.alert(
@@ -161,7 +171,7 @@ const RegisterInf = ({route}) => {
                 navigation.navigate('MainDrawer');
               }
             } catch (error) {
-              console.error('Error updating profile:', error);
+              console.log('Error:', error);
               Alert.alert(
                 'Lỗi',
                 'Đã xảy ra lỗi khi cập nhật thông tin. Vui lòng thử lại.',

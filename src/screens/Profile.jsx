@@ -55,7 +55,7 @@ const Profile = ({route}) => {
         setInfo({
           id: response.Driver.cic,
           image: response.image,
-          fullName: response.fullName,
+          fullName: response.name,
           dob: response.Driver.dob,
           gender: response.Driver.gender,
           address: response.Driver.address,

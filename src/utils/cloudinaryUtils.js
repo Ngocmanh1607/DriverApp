@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const uploadImageToCloudinary = async (imageUri, name) => {
   const userId = await AsyncStorage.getItem('userId');
   const formData = new FormData();
+  console.log(imageUri);
 
   // Lấy tên file từ đường dẫn
   const fileName = imageUri.split('/').pop();
