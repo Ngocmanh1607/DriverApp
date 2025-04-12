@@ -163,13 +163,11 @@ const RegisterInf = ({route}) => {
               info.cccdBack = url_cccdBack;
               info.cavet = url_cavet;
               await registerDriver(info);
-              if (response) {
-                Snackbar.show({
-                  text: 'Thông tin của bạn đã được cập nhật.',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                navigation.navigate('MainDrawer');
-              }
+              Snackbar.show({
+                text: 'Thông tin của bạn đã được cập nhật.',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              navigation.navigate('MainDrawer');
             } catch (error) {
               console.log('Error:', error);
               Alert.alert(

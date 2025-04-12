@@ -158,7 +158,7 @@ const registerDriver = async info => {
         driver: {
           cic: info.id,
           image: info.image,
-          fullName: info.fullName,
+          name: info.fullName,
           dob: info.dob,
           gender: info.gender,
           address: info.address,
