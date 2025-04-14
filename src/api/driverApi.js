@@ -40,6 +40,7 @@ const loginApi = async (email, password) => {
       {
         email: email,
         password: password,
+        role: 'driver',
       },
       {
         headers: {

@@ -11,6 +11,7 @@ import MapboxGL from '@rnmapbox/maps';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   acceptOrder,
   confirmOrder,
@@ -457,16 +458,35 @@ const MainScreen = () => {
       <View style={styles.orderCard}>
         {ordersNew ? (
           <>
-            <View style={styles.orderDetailContainer}>
+            <View style={styles.orderHeaderContainer}>
               <Text style={styles.orderTitle}>Đơn hàng mới</Text>
-              <TouchableOpacity onPress={handlePress}>
-                <Text style={styles.detail}>Chi tiết</Text>
-              </TouchableOpacity>
+              <View style={styles.actionsContainer}>
+                {/* Detail button */}
+                <TouchableOpacity onPress={handlePress}>
+                  <Text style={styles.detail}>Chi tiết</Text>
+                </TouchableOpacity>
+                {/* Chat icon button */}
+                <TouchableOpacity
+                  style={styles.chatIconButton}
+                  onPress={() =>
+                    navigation.navigate('ChatWithUser', {
+                      customerId: ordersNew.customer_id,
+                      driverId: driver_id,
+                    })
+                  }>
+                  <Icon name="chat-outline" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <Text style={styles.address}>
-              📍 {ordersNew.Restaurant.address}
-            </Text>
-            <Text style={styles.address}>📍 {ordersNew.address_receiver}</Text>
+
+            <View style={styles.addressContainer}>
+              <Text style={styles.address}>
+                📍 {ordersNew.Restaurant.address}
+              </Text>
+              <Text style={styles.address}>
+                📍 {ordersNew.address_receiver}
+              </Text>
+            </View>
 
             <View style={styles.buttonContainer}>{renderOrderStatus()}</View>
           </>

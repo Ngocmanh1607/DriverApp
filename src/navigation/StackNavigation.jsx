@@ -18,6 +18,7 @@ import Test from '../screens/Test';
 import StatisticScreen from '../screens/StatisticScreen';
 import WalletScreen from '../screens/WalletScreen';
 import ConfirmEmailScreen from '../screens/ConfirmEmailScreen';
+import MessageScreen from '../screens/ChatWithUser';
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -140,6 +141,15 @@ const StackNavigation = () => {
         options={{headerShown: true, headerBackTitle: 'Quay lại', title: 'Ví'}}
       />
       <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
+      <Stack.Screen
+        name="ChatWithUser"
+        component={MessageScreen}
+        options={{
+          headerShown: true,
+          headerBackTitle: 'Quay lại',
+          title: 'Tin nhắn',
+        }}
+      />
     </Stack.Navigator>
   );
 };
