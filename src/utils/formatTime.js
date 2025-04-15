@@ -1,11 +1,12 @@
-const formatTime = dateStr => {
-  const date = new Date(dateStr);
+export const formatDate = dateString => {
+  const date = new Date(dateString);
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+};
 
-  const formattedTime = date.toLocaleTimeString('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-  return formattedTime;
+const formatTime = dateString => {
+  const date = new Date(dateString);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 export default formatTime;

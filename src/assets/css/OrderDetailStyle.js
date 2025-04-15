@@ -7,6 +7,27 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
+  // Status styles
+  statusContainer: {
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  statusText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
   // Order Info Section
   orderInfo: {
     backgroundColor: '#ffffff',
@@ -25,7 +46,7 @@ const styles = StyleSheet.create({
   orderIdContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   orderId: {
     fontSize: 15,
@@ -37,8 +58,29 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   orderUser: {
+    marginBottom: 8,
+  },
+  customerInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 8,
+  },
+  addressText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#555',
+  },
+  icon: {
+    marginHorizontal: 8,
   },
 
   // Restaurant Section
@@ -78,17 +120,34 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 2,
   },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   restaurantRating: {
     fontSize: 14,
-    color: '#FFD700',
+    color: '#333',
+    marginLeft: 4,
   },
 
-  // Order Items
-  orderItemContainer: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 8,
+  // Section title
+  sectionHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 8,
+  },
+  orderItemsWrapper: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -98,6 +157,15 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  // Order Items
+  orderItemContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  lastItemNoBorder: {
+    borderBottomWidth: 0,
+  },
   orderItemDetails: {
     flexDirection: 'row',
     marginBottom: 12,
@@ -106,6 +174,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 8,
+    backgroundColor: '#f5f5f5',
   },
   orderItemText: {
     marginLeft: 12,
@@ -118,34 +187,75 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 4,
   },
+  toppingsContainer: {
+    marginTop: 4,
+  },
   orderItemOption: {
     fontSize: 13,
     color: '#666',
-    marginTop: 2,
+    marginBottom: 2,
   },
   orderItemInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 8,
     borderTopWidth: 0.5,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 12,
+    borderTopColor: '#f0f0f0',
   },
-  orderItemQuantity: {
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityLabel: {
     fontSize: 14,
     color: '#666',
+    marginRight: 4,
+  },
+  quantityValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
   },
   orderItemPrice: {
     fontSize: 15,
     fontWeight: '600',
     color: '#333',
   },
-
+  itemTotalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  itemTotalLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginRight: 8,
+  },
+  itemTotalValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FF5722',
+  },
+  emptyItemsContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyItemsText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 12,
+  },
   // Note Section
   noteContainer: {
     backgroundColor: '#ffffff',
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -159,6 +269,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',
+    flex: 1,
   },
 
   // Payment Section
@@ -176,11 +287,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  paymentHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   paymentMethod: {
     fontSize: 15,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 16,
   },
   paymentRow: {
     flexDirection: 'row',
