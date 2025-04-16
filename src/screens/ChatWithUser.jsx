@@ -17,6 +17,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import io from 'socket.io-client';
 import {useRoute} from '@react-navigation/native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Thay URL server của bạn
 const socket = io('http://localhost:3000');
@@ -61,20 +62,25 @@ const MessageScreen = () => {
   const route = useRoute();
   const {driverId, customerId} = route.params;
   const scrollViewRef = useRef();
-
+  let userId;
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    // Đăng ký driverId với server khi vào màn hình
-    if (driverId) {
-      socket.emit('registerUser', driverId);
+    const fetchUserId = async () => {
+      userId = await AsyncStorage.getItem('userId');
+    };
+    fetchUserId(); // Đăng ký driverId với server khi vào màn hình
+    if (userId) {
+      socket.emit('registerUser', userId);
     }
-
     // Lắng nghe tin nhắn từ server
     socket.on('receiveMessage', ({senderId, message, type}) => {
-      console.log('Message received:', {senderId, message, type});
-      setMessages(prevMessages => [...prevMessages, {senderId, message, type}]);
+      console.log('Message received:', {senderId, message, role, type, date});
+      setMessages(prevMessages => [
+        ...prevMessages,
+        {senderId, message, role, type, date},
+      ]);
     });
     return () => {
       socket.off('receiveMessage');
@@ -149,33 +155,54 @@ const MessageScreen = () => {
   };
 
   // Hàm gửi ảnh
+
   const sendImage = base64Image => {
+    const currentDate = new Date();
+    const timestamp = currentDate.toISOString();
     socket.emit('sendMessage', {
       senderId: driverId,
       receiverId: customerId,
       message: base64Image,
+      role: 'driver',
       type: 'image',
+      date: timestamp,
     });
 
     setMessages(prevMessages => [
       ...prevMessages,
-      {senderId: driverId, message: base64Image, type: 'image'},
+      {
+        senderId: driverId,
+        message: base64Image,
+        type: 'image',
+        role: 'driver',
+        date: timestamp,
+      },
     ]);
   };
 
   // Hàm gửi tin nhắn văn bản
   const sendMessage = () => {
+    const currentDate = new Date();
+    const timestamp = currentDate.toISOString();
     if (message.trim()) {
       socket.emit('sendMessage', {
         senderId: driverId,
         receiverId: customerId,
         message: message.trim(),
+        role: 'driver',
         type: 'text',
+        date: timestamp,
       });
 
       setMessages(prevMessages => [
         ...prevMessages,
-        {senderId: driverId, message: message.trim(), type: 'text'},
+        {
+          senderId: driverId,
+          message: message.trim(),
+          role: 'driver',
+          type: 'text',
+          date: timestamp,
+        },
       ]);
       setMessage('');
     }
@@ -191,7 +218,7 @@ const MessageScreen = () => {
             <View
               style={[
                 styles.messageBubble,
-                msg.senderId === driverId
+                msg.senderId === driverId && msg.role === 'driver'
                   ? styles.userMessage
                   : styles.contactMessage,
               ]}>
@@ -199,7 +226,7 @@ const MessageScreen = () => {
                 <Text
                   style={[
                     styles.messageText,
-                    msg.senderId === driverId
+                    msg.senderId === driverId && msg.role === 'driver'
                       ? styles.userMessageText
                       : styles.contactMessageText,
                   ]}>
@@ -212,6 +239,13 @@ const MessageScreen = () => {
                 />
               )}
             </View>
+            {/* Hiển thị thời gian gửi */}
+            <Text style={styles.timestamp}>
+              {new Date(msg.date).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
           </View>
         ))}
       </ScrollView>
@@ -329,6 +363,12 @@ const styles = StyleSheet.create({
   },
   contactMessageText: {
     color: '#000',
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#888',
+    textAlign: 'right',
+    marginTop: 2,
   },
   imageMessage: {
     width: 200,

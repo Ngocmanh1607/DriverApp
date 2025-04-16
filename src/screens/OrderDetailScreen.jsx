@@ -178,17 +178,16 @@ const OrderDetailScreen = ({route}) => {
                       ))}
                     </View>
                   )}
+                  <View style={styles.orderItemInfo}>
+                    <View style={styles.quantityContainer}>
+                      <Text style={styles.quantityLabel}>Số lượng:</Text>
+                      <Text style={styles.quantityValue}>{item.quantity}</Text>
+                    </View>
+                    <Text style={styles.orderItemPrice}>
+                      {formatPrice(item.price)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-
-              <View style={styles.orderItemInfo}>
-                <View style={styles.quantityContainer}>
-                  <Text style={styles.quantityLabel}>Số lượng:</Text>
-                  <Text style={styles.quantityValue}>{item.quantity}</Text>
-                </View>
-                <Text style={styles.orderItemPrice}>
-                  {formatPrice(item.price)}
-                </Text>
               </View>
 
               <View style={styles.itemTotalContainer}>

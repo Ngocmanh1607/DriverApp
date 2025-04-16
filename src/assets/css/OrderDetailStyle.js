@@ -200,8 +200,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 8,
-    borderTopWidth: 0.5,
-    borderTopColor: '#f0f0f0',
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -226,7 +224,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    marginTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: '#f0f0f0',
+    // marginTop: 8,
   },
   itemTotalLabel: {
     fontSize: 14,
