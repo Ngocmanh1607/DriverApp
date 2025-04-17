@@ -19,16 +19,20 @@ const OrderDetailScreen = ({route}) => {
 
   const getStatusColor = status => {
     switch (status) {
+      case 'PAID':
+        return '#4CAF50'; // Green
+      case 'UNPAID':
+        return '#757575'; // Gray
+      case 'PREPARING_ORDER':
+        return '#FF9800'; // Orange
+      case 'ORDER_CANCELED':
+        return '#F44336'; // Red
+      case 'ORDER_RECEIVED':
+        return '#2196F3'; // Blue
+      case 'DELIVERING':
+        return '#03A9F4'; // Light Blue
       case 'ORDER_CONFIRMED':
         return '#4CAF50'; // Green
-      case 'PREPARING':
-        return '#FF9800'; // Orange
-      case 'DELIVERING':
-        return '#2196F3'; // Blue
-      case 'DELIVERED':
-        return '#4CAF50'; // Green
-      case 'CANCELLED':
-        return '#F44336'; // Red
       default:
         return '#757575'; // Gray
     }
@@ -36,18 +40,22 @@ const OrderDetailScreen = ({route}) => {
 
   const getStatusText = status => {
     switch (status) {
-      case 'ORDER_CONFIRMED':
-        return 'Đã xác nhận';
-      case 'PREPARING':
+      case 'PAID':
+        return 'Đã thanh toán';
+      case 'UNPAID':
+        return 'Chưa thanh toán';
+      case 'PREPARING_ORDER':
         return 'Đang chuẩn bị';
+      case 'ORDER_CANCELED':
+        return 'Đã hủy';
+      case 'ORDER_RECEIVED':
+        return 'Đã nhận đơn';
       case 'DELIVERING':
         return 'Đang giao hàng';
-      case 'DELIVERED':
-        return 'Đã giao hàng';
-      case 'CANCELLED':
-        return 'Đã hủy';
+      case 'ORDER_CONFIRMED':
+        return 'Đã xác nhận';
       default:
-        return status || 'Đang xử lý';
+        return status;
     }
   };
 

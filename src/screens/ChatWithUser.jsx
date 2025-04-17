@@ -57,25 +57,31 @@ const requestCameraPermission = async () => {
   }
   return true; // iOS tự động cấp quyền
 };
-
+const formatTime = dateString => {
+  const date = new Date(dateString);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
 const MessageScreen = () => {
   const route = useRoute();
   const {driverId, customerId} = route.params;
   const scrollViewRef = useRef();
-  let userId;
+  const [userId, setUserId] = useState(null);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     const fetchUserId = async () => {
-      userId = await AsyncStorage.getItem('userId');
+      const id = await AsyncStorage.getItem('userId');
+      setUserId(id);
     };
-    fetchUserId(); // Đăng ký driverId với server khi vào màn hình
+    fetchUserId();
     if (userId) {
       socket.emit('registerUser', userId);
     }
     // Lắng nghe tin nhắn từ server
-    socket.on('receiveMessage', ({senderId, message, type}) => {
+    socket.on('receiveMessage', ({senderId, message, type, role, date}) => {
       console.log('Message received:', {senderId, message, role, type, date});
       setMessages(prevMessages => [
         ...prevMessages,
@@ -85,7 +91,7 @@ const MessageScreen = () => {
     return () => {
       socket.off('receiveMessage');
     };
-  }, [driverId, customerId]);
+  }, [userId]);
 
   // Tự động cuộn xuống cuối khi có tin nhắn mới
   useEffect(() => {
@@ -240,11 +246,14 @@ const MessageScreen = () => {
               )}
             </View>
             {/* Hiển thị thời gian gửi */}
-            <Text style={styles.timestamp}>
-              {new Date(msg.date).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+            <Text
+              style={[
+                styles.timestamp,
+                msg.senderId === driverId && msg.role === 'driver'
+                  ? styles.userTimestamp
+                  : styles.contactTimestamp,
+              ]}>
+              {formatTime(msg.date)}
             </Text>
           </View>
         ))}
@@ -261,11 +270,6 @@ const MessageScreen = () => {
               value={message}
               onChangeText={text => {
                 setMessage(text);
-                // Thông báo đang nhập
-                socket.emit('typing', {
-                  userId: driverId,
-                  receiverId: customerId,
-                });
               }}
               multiline
             />
@@ -367,8 +371,15 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     color: '#888',
-    textAlign: 'right',
     marginTop: 2,
+  },
+  userTimestamp: {
+    textAlign: 'right',
+    marginLeft: 50,
+  },
+  contactTimestamp: {
+    textAlign: 'left',
+    marginRight: 50,
   },
   imageMessage: {
     width: 200,
@@ -389,6 +400,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 15,
     marginRight: 10,
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
