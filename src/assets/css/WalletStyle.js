@@ -95,6 +95,53 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'flex-start',
   },
+  deliveryTransaction: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginHorizontal: 15,
+    marginVertical: 8,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+
+  transactionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+
+  transactionLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+
+  transactionValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+
+  statusBadge: {
+    backgroundColor: '#28a745',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   statusPending: {
     backgroundColor: '#f1c40f',
     color: '#fff',

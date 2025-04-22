@@ -9,27 +9,29 @@ import {
   Alert,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import styles from '../assets/css/WalletStyle';
 import {formatPrice} from '../utils/formatPrice';
-
+import {
+  getInfoUser,
+  getMoney,
+  getListMoney,
+  requestWithdrawMoney,
+} from '../api/driverApi';
+import {formatDateTime} from '../utils/formatTime';
+import {useNavigation} from '@react-navigation/native';
 const WalletScreen = () => {
-  const [balance, setBalance] = useState(1500000);
+  const navtigation = useNavigation();
+  const [balance, setBalance] = useState();
+  const [driverId, setDriverId] = useState();
   const [transactions, setTransactions] = useState([
     {
-      id: 1,
-      type: 'deposit',
-      amount: 500000,
-      date: '2024-03-20',
-      status: 'completed',
-      note: 'Tiền từ chuyến đi #123',
-    },
-    {
+      createdAt: '2025-04-20T08:50:25.000Z',
+      delivery_fee: '2300.00',
+      driver_id: 1,
       id: 2,
-      type: 'withdraw',
-      amount: 300000,
-      date: '2024-03-19',
-      status: 'completed',
-      note: 'Rút về STK: *****6789',
+      order_id: 31,
     },
   ]);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -39,8 +41,41 @@ const WalletScreen = () => {
   const [accountName, setAccountName] = useState('');
   const [withdrawType, setWithdrawType] = useState('bank'); // 'bank' hoặc 'zalopay'
   const [zaloPayNumber, setZaloPayNumber] = useState('');
+  // Lấy ID tài xế khi khởi tạo
+  useEffect(() => {
+    const fetchDriverId = async () => {
+      try {
+        await getInfoUser();
+        const id = await AsyncStorage.getItem('driverId');
+        setDriverId(id);
+      } catch (error) {
+        console.error('Lỗi khi lấy ID tài xế:', error.message);
+      }
+    };
 
-  const handleWithdraw = () => {
+    fetchDriverId();
+  }, []);
+  useEffect(() => {
+    fetchMoney();
+    fetchListMoney();
+  }, [driverId]);
+  const fetchMoney = async () => {
+    try {
+      if (driverId) {
+        const response = await getMoney(driverId);
+        setBalance(response);
+      }
+    } catch (error) {}
+  };
+  const fetchListMoney = async () => {
+    try {
+      if (driverId) {
+        const response = await getListMoney(driverId);
+        setTransactions(response);
+      }
+    } catch (error) {}
+  };
+  const handleWithdraw = async () => {
     if (!withdrawAmount) {
       Alert.alert('Thông báo', 'Vui lòng nhập số tiền');
       return;
@@ -90,10 +125,41 @@ const WalletScreen = () => {
     setBankName('');
     setAccountName('');
     setZaloPayNumber('');
-
+    const response = await requestWithdrawMoney(driverId, withdrawAmount);
     Alert.alert(
       'Thành công',
       'Yêu cầu rút tiền của bạn đã được ghi nhận và đang được xử lý',
+    );
+  };
+  const handlePress = () => navtigation.navigate('OrderDetail');
+  const TransactionDetail = ({transaction}) => {
+    return (
+      <TouchableOpacity
+        style={styles.deliveryTransaction}
+        onPress={handlePress}>
+        <View style={styles.transactionRow}>
+          <Text style={styles.transactionLabel}>Mã đơn hàng:</Text>
+          <Text style={styles.transactionValue}>#{transaction.order_id}</Text>
+        </View>
+
+        <View style={styles.transactionRow}>
+          <Text style={styles.transactionLabel}>Phí vận chuyển:</Text>
+          <Text style={styles.transactionValue}>
+            {formatPrice(transaction.delivery_fee)}
+          </Text>
+        </View>
+
+        <View style={styles.transactionRow}>
+          <Text style={styles.transactionLabel}>Thời gian:</Text>
+          <Text style={styles.transactionValue}>
+            {formatDateTime(transaction.createdAt)}
+          </Text>
+        </View>
+
+        <View style={styles.statusBadge}>
+          <Text style={styles.statusText}>Đã hoàn thành</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -136,7 +202,7 @@ const WalletScreen = () => {
       {/* Lịch sử giao dịch */}
       <Text style={styles.sectionTitle}>Lịch sử giao dịch</Text>
       <ScrollView>
-        {transactions.map(transaction => (
+        {/* {transactions.map(transaction => (
           <View key={transaction.id} style={styles.transactionContainer}>
             <View style={styles.transactionHeader}>
               <Text
@@ -168,6 +234,9 @@ const WalletScreen = () => {
                   : 'Thất bại'}
             </Text>
           </View>
+        ))} */}
+        {transactions?.map(transaction => (
+          <TransactionDetail key={transaction.id} transaction={transaction} />
         ))}
       </ScrollView>
 

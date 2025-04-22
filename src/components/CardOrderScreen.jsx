@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import formatTime, {formatDate} from '../utils/formatTime';
 const CardOrderScreen = ({item}) => {
   const navigation = useNavigation();
-  console.log(item);
   const handlePress = () => {
     navigation.navigate('OrderDetail', {ordersNew: item});
   };

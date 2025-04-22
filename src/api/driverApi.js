@@ -539,7 +539,135 @@ const getReview = async driverId => {
     }
   }
 };
+const getMoney = async driverId => {
+  try {
+    if (!driverId) {
+      throw new Error('ID tài xế không hợp lệ');
+    }
 
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+
+    if (!userId || !accessToken) {
+      throw new Error('Người dùng chưa đăng nhập');
+    }
+
+    const response = await apiClient.get(`/driver/money/${driverId}`, {
+      headers: {
+        'x-api-key': apiKey,
+        authorization: accessToken,
+        'x-client-id': userId,
+      },
+    });
+
+    if (!response || !response.data || !response.data.metadata) {
+      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
+    }
+
+    return response.data.metadata;
+  } catch (error) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response) {
+      throw new Error('Có lỗi xảy ra từ phía server');
+    } else if (error.request) {
+      throw new Error(
+        'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng',
+      );
+    } else {
+      console.error('Lỗi:', error.message);
+      throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+    }
+  }
+};
+const getListMoney = async driverId => {
+  try {
+    if (!driverId) {
+      throw new Error('ID tài xế không hợp lệ');
+    }
+
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+
+    if (!userId || !accessToken) {
+      throw new Error('Người dùng chưa đăng nhập');
+    }
+
+    const response = await apiClient.get(`/driver/list/money/${driverId}`, {
+      headers: {
+        'x-api-key': apiKey,
+        authorization: accessToken,
+        'x-client-id': userId,
+      },
+    });
+
+    if (!response || !response.data || !response.data.metadata) {
+      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
+    }
+
+    return response.data.metadata;
+  } catch (error) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response) {
+      throw new Error('Có lỗi xảy ra từ phía server');
+    } else if (error.request) {
+      throw new Error(
+        'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng',
+      );
+    } else {
+      console.error('Lỗi:', error.message);
+      throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+    }
+  }
+};
+const requestWithdrawMoney = async (driverId, money) => {
+  try {
+    if (!driverId) {
+      throw new Error('ID tài xế không hợp lệ');
+    }
+
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+
+    if (!userId || !accessToken) {
+      throw new Error('Người dùng chưa đăng nhập');
+    }
+
+    const response = await apiClient.post(
+      `/driver/list/transaction/${driverId}`,
+      {
+        amount: money,
+      },
+      {
+        headers: {
+          'x-api-key': apiKey,
+          authorization: accessToken,
+          'x-client-id': userId,
+        },
+      },
+    );
+
+    if (!response || !response.data || !response.data.metadata) {
+      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
+    }
+
+    return response.data.metadata;
+  } catch (error) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response) {
+      throw new Error('Có lỗi xảy ra từ phía server');
+    } else if (error.request) {
+      throw new Error(
+        'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng',
+      );
+    } else {
+      console.error('Lỗi:', error.message);
+      throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+    }
+  }
+};
 export {
   signupApi,
   loginApi,
@@ -553,4 +681,7 @@ export {
   getOrder,
   changeStatus,
   getReview,
+  getMoney,
+  getListMoney,
+  requestWithdrawMoney,
 };
