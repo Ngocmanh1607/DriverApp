@@ -621,7 +621,7 @@ const getListMoney = async driverId => {
     }
   }
 };
-const requestWithdrawMoney = async (driverId, money) => {
+const requestWithdrawMoney = async (driverId, money, accountId, bankName) => {
   try {
     if (!driverId) {
       throw new Error('ID tài xế không hợp lệ');
@@ -638,7 +638,53 @@ const requestWithdrawMoney = async (driverId, money) => {
       `/driver/list/transaction/${driverId}`,
       {
         amount: money,
+        account_id: accountId,
+        bank_name: bankName,
       },
+      {
+        headers: {
+          'x-api-key': apiKey,
+          authorization: accessToken,
+          'x-client-id': userId,
+        },
+      },
+    );
+
+    if (!response || !response.data || !response.data.metadata) {
+      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
+    }
+
+    return response.data.metadata;
+  } catch (error) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response) {
+      throw new Error('Có lỗi xảy ra từ phía server');
+    } else if (error.request) {
+      throw new Error(
+        'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng',
+      );
+    } else {
+      console.error('Lỗi:', error.message);
+      throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+    }
+  }
+};
+const getrequestWithdrawMoney = async driverId => {
+  try {
+    if (!driverId) {
+      throw new Error('ID tài xế không hợp lệ');
+    }
+
+    const userId = await AsyncStorage.getItem('userId');
+    const accessToken = await AsyncStorage.getItem('accessToken');
+
+    if (!userId || !accessToken) {
+      throw new Error('Người dùng chưa đăng nhập');
+    }
+
+    const response = await apiClient.get(
+      `/driver/list/transaction/${driverId}`,
       {
         headers: {
           'x-api-key': apiKey,
@@ -684,4 +730,5 @@ export {
   getMoney,
   getListMoney,
   requestWithdrawMoney,
+  getrequestWithdrawMoney,
 };

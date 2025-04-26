@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import {
   View,
-  StyleSheet,
   Text,
   TouchableOpacity,
   Platform,
   PermissionsAndroid,
+  AppState,
 } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import axios from 'axios';
@@ -119,30 +119,92 @@ const MainScreen = () => {
   // Theo dõi vị trí tài xế
   useEffect(() => {
     let watchId;
-    const watchShipperLocation = async () => {
-      const hasPermission = await requestLocationPermission();
-      if (!hasPermission) {
-        console.log('Chưa được cấp quyền truy cập vị trí.');
-        return;
+    let appStateSubscription;
+
+    const startLocationTracking = async () => {
+      try {
+        // First try to get last known position immediately
+        const lastPosition = await AsyncStorage.getItem('shipperLocation');
+        if (lastPosition) {
+          setShipperLocation(JSON.parse(lastPosition));
+        }
+
+        // Then request permissions and start tracking
+        const hasPermission = await requestLocationPermission();
+        if (!hasPermission) {
+          console.log('Chưa được cấp quyền truy cập vị trí.');
+          return;
+        }
+
+        // Get current position first (one-time)
+        Geolocation.getCurrentPosition(
+          position => {
+            const {latitude, longitude} = position.coords;
+            const newLocation = {latitude, longitude};
+            setShipperLocation(newLocation);
+            AsyncStorage.setItem(
+              'shipperLocation',
+              JSON.stringify(newLocation),
+            );
+          },
+          error => console.error('Lỗi khi lấy vị trí hiện tại:', error.message),
+          {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+        );
+
+        // Then start watching position
+        watchId = Geolocation.watchPosition(
+          position => {
+            const {latitude, longitude} = position.coords;
+            const newLocation = {latitude, longitude};
+            setShipperLocation(newLocation);
+            AsyncStorage.setItem(
+              'shipperLocation',
+              JSON.stringify(newLocation),
+            );
+          },
+          error => console.error('Lỗi khi theo dõi vị trí:', error.message),
+          {
+            enableHighAccuracy: true,
+            distanceFilter: 5, // Update when moved 5 meters
+            interval: 5000, // Update every 5 seconds
+            fastestInterval: 2000, // Fastest update interval
+          },
+        );
+      } catch (error) {
+        console.error('Lỗi khởi tạo theo dõi vị trí:', error);
       }
-      watchId = Geolocation.watchPosition(
-        position => {
-          const {latitude, longitude} = position.coords;
-          setShipperLocation({latitude, longitude});
-        },
-        error => console.error('Lỗi khi lấy vị trí:', error.message),
-        {
-          enableHighAccuracy: true,
-          distanceFilter: 10,
-          interval: 10000,
-        },
-      );
     };
 
-    watchShipperLocation();
+    // Handle app state changes
+    const handleAppStateChange = nextAppState => {
+      if (nextAppState === 'active') {
+        // App has come to the foreground, restart tracking
+        startLocationTracking();
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Clean up when app goes to background
+        if (watchId) {
+          Geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+      }
+    };
+
+    // Subscribe to app state changes
+    appStateSubscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    // Start tracking initially
+    startLocationTracking();
+
+    // Cleanup function
     return () => {
       if (watchId) {
         Geolocation.clearWatch(watchId);
+      }
+      if (appStateSubscription) {
+        appStateSubscription.remove();
       }
     };
   }, []);
@@ -181,30 +243,45 @@ const MainScreen = () => {
 
   // Khôi phục tuyến đường và vị trí từ bộ nhớ
   useEffect(() => {
-    const restoreRoutesFromStorage = async () => {
+    const restoreRoutesAndLocations = async () => {
       try {
+        // Restore routes
         const savedRoutes = await AsyncStorage.getItem('routes');
         if (savedRoutes) {
-          const {
-            route1: savedRoute1 = [],
-            route2: savedRoute2 = [],
-            restaurantLocation: savedRestaurantLocation,
-            shipperLocation: savedShipperLocation,
-          } = JSON.parse(savedRoutes);
+          const parsedData = JSON.parse(savedRoutes);
 
-          setRoute1(Array.isArray(savedRoute1) ? savedRoute1 : []);
-          setRoute2(Array.isArray(savedRoute2) ? savedRoute2 : []);
-          if (savedRestaurantLocation)
-            setRestaurantLocation(savedRestaurantLocation);
-          if (savedShipperLocation) setShipperLocation(savedShipperLocation);
+          if (parsedData.route1) {
+            setRoute1(
+              Array.isArray(parsedData.route1) ? parsedData.route1 : [],
+            );
+          }
+
+          if (parsedData.route2) {
+            setRoute2(
+              Array.isArray(parsedData.route2) ? parsedData.route2 : [],
+            );
+          }
+
+          if (parsedData.restaurantLocation) {
+            setRestaurantLocation(parsedData.restaurantLocation);
+          }
+        }
+
+        // Separately restore shipper location if not set by tracking yet
+        if (!shipperLocation) {
+          const savedShipperLocation =
+            await AsyncStorage.getItem('shipperLocation');
+          if (savedShipperLocation) {
+            setShipperLocation(JSON.parse(savedShipperLocation));
+          }
         }
       } catch (error) {
-        console.error('Lỗi khi khôi phục tuyến đường và vị trí:', error);
+        console.error('Lỗi khi khôi phục dữ liệu:', error);
       }
     };
 
-    restoreRoutesFromStorage();
-  }, []);
+    restoreRoutesAndLocations();
+  }, [shipperLocation]);
 
   const clearRoutesFromStorage = async () => {
     try {

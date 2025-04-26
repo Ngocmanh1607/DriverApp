@@ -3,198 +3,306 @@ import {StyleSheet} from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FA',
   },
-  header: {
-    backgroundColor: '#FF6347',
-    padding: 20,
+
+  // Compact Header Section
+  headerWrapper: {
+    backgroundColor: '#FF4B3A',
+    paddingTop: 30,
+    paddingBottom: 16,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-  },
-  balanceContainer: {
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  balanceLabel: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 5,
-  },
-  balanceAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  actionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
-    marginHorizontal: 10,
-    elevation: 5,
-  },
-  actionButton: {
-    alignItems: 'center',
-    padding: 10,
-  },
-  actionIcon: {
-    backgroundColor: '#ffeaea',
-    padding: 10,
-    borderRadius: 25,
-    marginBottom: 5,
-  },
-  actionText: {
-    color: '#333',
-    fontSize: 14,
-  },
-  actionButtonActive: {
-    backgroundColor: '#FF6347',
-    padding: 10,
-    borderRadius: 25,
-    marginBottom: 5,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    margin: 20,
-    color: '#2c3e50',
-  },
-  transactionContainer: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 10,
-    padding: 15,
-    borderRadius: 10,
-    elevation: 2,
-  },
-  transactionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  transactionAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  withdrawAmount: {
-    color: '#e74c3c',
-  },
-  depositAmount: {
-    color: '#27ae60',
-  },
-  transactionDate: {
-    color: '#7f8c8d',
-    fontSize: 12,
-  },
-  transactionStatus: {
-    fontSize: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  deliveryTransaction: {
-    backgroundColor: '#fff',
-    padding: 15,
-    marginHorizontal: 15,
-    marginVertical: 8,
-    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+
+  header: {
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  balanceContainer: {
+    flex: 1,
+  },
+
+  balanceTitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+
+  balanceAmount: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+
+  withdrawButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+
+  withdrawText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+
+  // Tab Navigation
+  tabContainer: {
+    flexDirection: 'row',
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+  },
+
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+
+  activeTab: {
+    borderBottomColor: '#FF4B3A',
+  },
+
+  tabText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#777',
+  },
+
+  activeTabText: {
+    color: '#FF4B3A',
+    fontWeight: '700',
+  },
+
+  // Content Area
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+
+  // Transaction Items
+  transactionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    padding: 14,
+    marginBottom: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+
+  transactionLeft: {
+    flex: 2,
+  },
+
+  transactionRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+
+  orderId: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 3,
+  },
+
+  transactionDate: {
+    fontSize: 12,
+    color: '#888',
+  },
+
+  earnAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00C853',
+    marginBottom: 6,
+  },
+
+  // Withdrawal Items
+  withdrawalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    padding: 14,
+    marginBottom: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+
+  withdrawalLeft: {
+    flex: 2,
+  },
+
+  withdrawalRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+
+  bankInfo: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 3,
+  },
+
+  withdrawalDate: {
+    fontSize: 12,
+    color: '#888',
+  },
+
+  withdrawAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF4B3A',
+    marginBottom: 6,
+  },
+
+  // Status Tags
+  statusTag: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: '#E8F5E9',
+  },
+
+  statusTagPending: {
+    backgroundColor: '#FFF3E0',
+  },
+
+  statusTagRejected: {
+    backgroundColor: '#FFEBEE',
+  },
+
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#00C853',
+  },
+
+  statusTextPending: {
+    color: '#FF9800',
+  },
+
+  statusTextRejected: {
+    color: '#F44336',
+  },
+
+  // Transaction Detail Section
+  deliveryTransaction: {
+    backgroundColor: '#FFF',
+    padding: 14,
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
 
   transactionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
 
   transactionLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: '#777',
   },
 
   transactionValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#333',
   },
 
   statusBadge: {
-    backgroundColor: '#28a745',
-    paddingHorizontal: 12,
+    alignSelf: 'flex-end',
+    marginTop: 6,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: 8,
+    borderRadius: 10,
+    backgroundColor: '#E8F5E9',
   },
 
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statusPending: {
-    backgroundColor: '#f1c40f',
-    color: '#fff',
-  },
-  statusCompleted: {
-    backgroundColor: '#2ecc71',
-    color: '#fff',
-  },
-  statusFailed: {
-    backgroundColor: '#e74c3c',
-    color: '#fff',
-  },
-  // Modal styles
+  // Withdraw Modal
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
+
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    minHeight: '50%',
+    paddingBottom: 30,
   },
+
+  closeButton: {
+    alignSelf: 'flex-end',
+    padding: 6,
+  },
+
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#222',
+    marginBottom: 16,
     textAlign: 'center',
   },
+
   input: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F5F5F5',
     borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
+    padding: 14,
+    fontSize: 15,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  withdrawButton: {
-    backgroundColor: '#e74c3c',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
+
   withdrawButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#FFF',
+    fontSize: 15,
     fontWeight: '600',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
   },
 });
 

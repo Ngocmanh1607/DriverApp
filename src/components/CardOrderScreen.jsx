@@ -42,7 +42,6 @@ const CardOrderScreen = ({item}) => {
           text: 'Đang giao hàng',
           icon: 'truck-delivery-outline',
         };
-      case 'GIVED_ORDER':
       case 'GIVED ORDER':
         return {
           color: '#9C27B0',
