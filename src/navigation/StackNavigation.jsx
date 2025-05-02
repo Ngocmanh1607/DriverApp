@@ -12,7 +12,6 @@ import HeaderSwitch from '../components/HeaderSwitch';
 import OrderScreen from '../screens/OrderScreen';
 import ReviewScreen from '../screens/ReviewScreen';
 import AccountScreen from '../screens/AccountScreen';
-import InformationScreen from '../screens/InformationScreen';
 import QRScanner from '../screens/QRScanner';
 import Test from '../screens/Test';
 import StatisticScreen from '../screens/StatisticScreen';
@@ -106,15 +105,6 @@ const StackNavigation = () => {
           headerShown: true,
           headerBackTitle: 'Quay lại',
           title: 'Đánh giá',
-        }}
-      />
-      <Stack.Screen
-        name="Information"
-        component={InformationScreen}
-        options={{
-          headerShown: true,
-          headerBackTitle: 'Quay lại',
-          title: 'Thông tin',
         }}
       />
       <Stack.Screen

@@ -35,11 +35,11 @@ const AccountScreen = () => {
       icon: 'payment',
       path: 'Wallet',
     },
-    {
-      title: 'Cài đặt',
-      icon: 'settings',
-      path: 'Settings',
-    },
+    // {
+    //   title: 'Cài đặt',
+    //   icon: 'settings',
+    //   path: 'Settings',
+    // },
   ];
 
   const handleNavigate = path => {

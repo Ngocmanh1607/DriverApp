@@ -29,9 +29,6 @@ const RegisterInf = ({route}) => {
     image: '',
     fullName: '',
     dob: '',
-    gender: '',
-    address: '',
-    date: '',
     phone_number: '',
     cccdFront: '',
     cccdBack: '',
@@ -41,7 +38,6 @@ const RegisterInf = ({route}) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUri, setImageUri] = useState('');
 
   const openImagePicker = async type => {
     const options = {
@@ -94,41 +90,40 @@ const RegisterInf = ({route}) => {
 
   // Validate ngày tháng năm sinh
   const validateDate = date => {
-    const dateRegex = /^(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4})$/; // Định dạng ngày: dd-mm-yyyy
+    const dateRegex = /^(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4})$/;
     return dateRegex.test(date);
   };
 
   const handleSaveChanges = async () => {
     // Kiểm tra các trường bắt buộc
-    // if (
-    //   !info.fullName ||
-    //   !info.phone_number ||
-    //   !info.dob ||
-    //   !info.address ||
-    //   !info.cccdFront ||
-    //   !info.cccdBack
-    // ) {
-    //   Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
-    //   return;
-    // }
-    // // Kiểm tra thông tin xe
-    // if (!bike.name || !bike.cavet) {
-    //   Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
-    //   return;
-    // }
-    // // Kiểm tra định dạng số điện thoại
-    // if (!validatePhoneNumber(info.phone_number)) {
-    //   Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
-    //   return;
-    // }
-    // // Kiểm tra định dạng ngày sinh
-    // if (!validateDate(info.dob)) {
-    //   Alert.alert(
-    //     'Thông báo',
-    //     'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)',
-    //   );
-    //   return;
-    // }
+    if (
+      !info.fullName ||
+      !info.phone_number ||
+      !info.dob ||
+      !info.cccdFront ||
+      !info.cccdBack
+    ) {
+      Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
+      return;
+    }
+    // Kiểm tra thông tin xe
+    if (!bike.name || !bike.cavet) {
+      Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
+      return;
+    }
+    // Kiểm tra định dạng số điện thoại
+    if (!validatePhoneNumber(info.phone_number)) {
+      Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
+      return;
+    }
+    // Kiểm tra định dạng ngày sinh
+    if (!validateDate(info.dob)) {
+      Alert.alert(
+        'Thông báo',
+        'Ngày sinh không hợp lệ (định dạng: dd/mm/yyyy)',
+      );
+      return;
+    }
     // Thông báo xác nhận trước khi đăng ký
     Alert.alert(
       'Xác nhận đăng ký',
@@ -252,37 +247,19 @@ const RegisterInf = ({route}) => {
                   activeOutlineColor="#e74c3c"
                   placeholder="VD: 12/12/1990"
                   value={info.dob || ''}
-                  style={[styles.input, {width: '64%'}]}
+                  style={[styles.input, {width: '40%'}]}
                   onChangeText={text => setInfo({...info, dob: text})}
                 />
                 <TextInput
-                  label="Giới tính"
-                  placeholder="Nam/Nữ"
+                  label="Số điện thoại"
                   mode="outlined"
                   activeOutlineColor="#e74c3c"
-                  value={info.gender || ''}
-                  style={[styles.input, {width: '34%'}]}
-                  onChangeText={text => setInfo({...info, gender: text})}
+                  placeholder="VD: 0909090909"
+                  value={info.phone_number || ''}
+                  style={[styles.input, {width: '48%'}]}
+                  onChangeText={text => setInfo({...info, phone_number: text})}
                 />
               </View>
-              <TextInput
-                label="Số điện thoại"
-                mode="outlined"
-                activeOutlineColor="#e74c3c"
-                placeholder="VD: 0909090909"
-                value={info.phone_number || ''}
-                style={styles.input}
-                onChangeText={text => setInfo({...info, phone_number: text})}
-              />
-              <TextInput
-                label="Địa chỉ"
-                mode="outlined"
-                activeOutlineColor="#e74c3c"
-                value={info.address || ''}
-                style={styles.input}
-                numberOfLines={2}
-                onChangeText={text => setInfo({...info, address: text})}
-              />
               <Text style={styles.label}>Ảnh CCCD</Text>
               <View
                 style={{

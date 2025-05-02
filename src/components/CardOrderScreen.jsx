@@ -9,15 +9,9 @@ const CardOrderScreen = ({item}) => {
     navigation.navigate('OrderDetail', {ordersNew: item});
   };
 
-  const calculateTotal = () => {
-    if (!item.listCartItem || item.listCartItem.length === 0) return 0;
-    return item.listCartItem.reduce((sum, cartItem) => {
-      return sum + cartItem.price * cartItem.quantity;
-    }, 0);
-  };
-
   const formatPrice = price => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const cleanPrice = Math.round(price).toString();
+    return cleanPrice.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
 
   const getStatusInfo = () => {
@@ -100,9 +94,7 @@ const CardOrderScreen = ({item}) => {
         </View>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Tổng tiền:</Text>
-          <Text style={styles.priceValue}>
-            {formatPrice(calculateTotal())} đ
-          </Text>
+          <Text style={styles.priceValue}>{formatPrice(item.price)} đ</Text>
         </View>
       </View>
 

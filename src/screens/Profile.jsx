@@ -29,8 +29,6 @@ const Profile = ({route}) => {
     image: '',
     fullName: '',
     dob: '',
-    gender: '',
-    address: '',
     date: '',
     phone_number: '',
     cccdFront: '',
@@ -57,8 +55,6 @@ const Profile = ({route}) => {
           image: response.image,
           fullName: response.name,
           dob: response.Driver.dob,
-          gender: response.Driver.gender,
-          address: response.Driver.address,
           date: response.Driver.dob,
           phone_number: response.phone_number,
           cccdFront: response.Driver.cccdFront,
@@ -296,43 +292,23 @@ const Profile = ({route}) => {
                     editable={isEditing}
                     placeholder="VD: 12/12/1990"
                     value={formatDate(info.dob) || ''}
-                    style={[styles.input, {width: '64%'}]}
+                    style={[styles.input, {width: '45%'}]}
                     onChangeText={text => setInfo({...info, dob: text})}
                   />
                   <TextInput
-                    label="Giới tính"
-                    placeholder="Nam/Nữ"
+                    label="Số điện thoại"
                     mode="outlined"
                     activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
                     outlineColor="#666"
                     editable={isEditing}
-                    value={info.gender || ''}
-                    style={[styles.input, {width: '34%'}]}
-                    onChangeText={text => setInfo({...info, gender: text})}
+                    placeholder="VD: 0909090909"
+                    value={info.phone_number.toString() || ''}
+                    style={[styles.input, {width: '45%'}]}
+                    onChangeText={text =>
+                      setInfo({...info, phone_number: text})
+                    }
                   />
                 </View>
-                <TextInput
-                  label="Số điện thoại"
-                  mode="outlined"
-                  activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
-                  outlineColor="#666"
-                  editable={isEditing}
-                  placeholder="VD: 0909090909"
-                  value={info.phone_number.toString() || ''}
-                  style={styles.input}
-                  onChangeText={text => setInfo({...info, phone_number: text})}
-                />
-                <TextInput
-                  label="Địa chỉ"
-                  mode="outlined"
-                  activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
-                  outlineColor="#666"
-                  editable={isEditing}
-                  value={info.address || ''}
-                  style={styles.input}
-                  numberOfLines={2}
-                  onChangeText={text => setInfo({...info, address: text})}
-                />
                 <Text style={styles.label}>Ảnh CCCD</Text>
                 <View
                   style={{
@@ -381,28 +357,36 @@ const Profile = ({route}) => {
               </View>
               <View style={styles.vehicleInfo}>
                 <Text style={styles.label}>Thông tin phương tiện</Text>
-                <TextInput
-                  label="Biển số xe"
-                  mode="outlined"
-                  activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
-                  outlineColor="#666"
-                  editable={isEditing}
-                  placeholder="VD: 59A1-123.45"
-                  value={info.license_plate || ''}
-                  style={styles.input}
-                  onChangeText={text => setInfo({...info, license_plate: text})}
-                />
-                <TextInput
-                  label="Tên xe"
-                  mode="outlined"
-                  activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
-                  outlineColor="#666"
-                  editable={isEditing}
-                  value={info.car_name || ''}
-                  style={styles.input}
-                  placeholder="VD: Honda Wave, Yamaha Sirius..."
-                  onChangeText={text => setInfo({...info, car_name: text})}
-                />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                  }}>
+                  <TextInput
+                    label="Biển số xe"
+                    mode="outlined"
+                    activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
+                    outlineColor="#666"
+                    editable={isEditing}
+                    placeholder="VD: 59A1-123.45"
+                    value={info.license_plate || ''}
+                    style={[styles.input, {width: '45%'}]}
+                    onChangeText={text =>
+                      setInfo({...info, license_plate: text})
+                    }
+                  />
+                  <TextInput
+                    label="Tên xe"
+                    mode="outlined"
+                    activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
+                    outlineColor="#666"
+                    editable={isEditing}
+                    value={info.car_name || ''}
+                    style={[styles.input, {width: '45%'}]}
+                    placeholder="VD: Honda Wave, Yamaha Sirius..."
+                    onChangeText={text => setInfo({...info, car_name: text})}
+                  />
+                </View>
                 <View style={styles.imageUploadContainer}>
                   <Text style={styles.label}>Hình ảnh đăng ký xe (Cà vẹt)</Text>
                   <TouchableOpacity
