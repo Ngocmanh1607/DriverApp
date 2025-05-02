@@ -46,7 +46,7 @@ const OrderScreen = () => {
       ) : (
         <FlatList
           data={orders}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.order_id.toString()}
           renderItem={renderOrder}
           ListEmptyComponent={
             <Text style={styles.emptyText}>Chưa có đơn hàng</Text>

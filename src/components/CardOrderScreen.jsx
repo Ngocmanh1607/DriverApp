@@ -6,7 +6,7 @@ import formatTime, {formatDate} from '../utils/formatTime';
 const CardOrderScreen = ({item}) => {
   const navigation = useNavigation();
   const handlePress = () => {
-    navigation.navigate('OrderDetail', {ordersNew: item});
+    navigation.navigate('OrderHisDetail', {orderData: item});
   };
 
   const formatPrice = price => {
@@ -17,6 +17,12 @@ const CardOrderScreen = ({item}) => {
   const getStatusInfo = () => {
     switch (item.order_status) {
       case 'PAID':
+        return {
+          color: '#FF0000',
+          text: 'Đơn hàng mới',
+          icon: 'bell-ring-outline',
+        };
+      case 'UNPAID':
         return {
           color: '#FF0000',
           text: 'Đơn hàng mới',
@@ -67,7 +73,7 @@ const CardOrderScreen = ({item}) => {
       <View style={styles.headerContainer}>
         <View style={styles.orderIdContainer}>
           <Icon name="receipt" size={18} color="#333" />
-          <Text style={styles.orderId}>Đơn hàng #{item.id}</Text>
+          <Text style={styles.orderId}>Đơn hàng #{item.order_id}</Text>
         </View>
         <View style={styles.dateTimeContainer}>
           <Icon
@@ -76,14 +82,18 @@ const CardOrderScreen = ({item}) => {
             color="#666"
             style={styles.headerIcon}
           />
-          <Text style={styles.orderDate}>{formatDate(item.order_date)}</Text>
+          <Text style={styles.orderDate}>
+            {formatDate(item.order_created_at)}
+          </Text>
           <Icon
             name="clock-outline"
             size={16}
             color="#666"
             style={[styles.headerIcon, {marginLeft: 8}]}
           />
-          <Text style={styles.orderDate}>{formatTime(item.order_date)}</Text>
+          <Text style={styles.orderDate}>
+            {formatTime(item.order_created_at)}
+          </Text>
         </View>
       </View>
 
@@ -139,7 +149,7 @@ const CardOrderScreen = ({item}) => {
           />
           <View style={styles.addressContainer}>
             <Text style={styles.addressLabel}>Địa chỉ:</Text>
-            <Text style={styles.addressText}>{item.address_receiver}</Text>
+            <Text style={styles.addressText}>{item.address}</Text>
           </View>
         </View>
       </View>

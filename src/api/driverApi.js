@@ -410,12 +410,8 @@ const giveOrder = async orderId => {
   }
 };
 
-const getOrder = async driverId => {
+const getOrder = async () => {
   try {
-    if (!driverId) {
-      throw new Error('ID tài xế không hợp lệ');
-    }
-
     const userId = await AsyncStorage.getItem('userId');
     const accessToken = await AsyncStorage.getItem('accessToken');
 
@@ -423,7 +419,7 @@ const getOrder = async driverId => {
       throw new Error('Người dùng chưa đăng nhập');
     }
 
-    const response = await apiClient.get(`/driver/${driverId}/order`, {
+    const response = await apiClient.get(`/driver/order`, {
       headers: {
         'x-api-key': apiKey,
         authorization: accessToken,

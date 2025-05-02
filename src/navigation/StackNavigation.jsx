@@ -18,6 +18,7 @@ import StatisticScreen from '../screens/StatisticScreen';
 import WalletScreen from '../screens/WalletScreen';
 import ConfirmEmailScreen from '../screens/ConfirmEmailScreen';
 import MessageScreen from '../screens/ChatWithUser';
+import OrderHisDetailScreen from '../screens/OrderHisDetailScreen';
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -83,6 +84,15 @@ const StackNavigation = () => {
       <Stack.Screen
         name="OrderDetail"
         component={OrderDetailScreen}
+        options={{
+          headerShown: true,
+          headerBackTitle: 'Quay lại',
+          title: 'Chi tiết',
+        }}
+      />
+      <Stack.Screen
+        name="OrderHisDetail"
+        component={OrderHisDetailScreen}
         options={{
           headerShown: true,
           headerBackTitle: 'Quay lại',

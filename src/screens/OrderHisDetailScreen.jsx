@@ -9,14 +9,16 @@ import {
 import React from 'react';
 import {formatPrice} from '../utils/formatPrice';
 import {formatDate} from '../utils/format';
-import styles from '../assets/css/OrderDetailStyle';
+import styles from '../assets/css/OrderHisDetailStyle';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const OrderDetailScreen = ({route}) => {
-  const {ordersNew} = route.params;
-  console.log('ordersNew', ordersNew);
-  const items = ordersNew.listCartItem || [];
+  const {orderData} = route.params;
+
+  const order = orderData || {};
+
+  const items = order.listCartItem || [];
 
   const getStatusColor = status => {
     switch (status) {
@@ -61,35 +63,71 @@ const OrderDetailScreen = ({route}) => {
   };
 
   const callCustomer = () => {
-    if (ordersNew.phone_number) {
-      Linking.openURL(`tel:${ordersNew.phone_number}`);
+    if (order.phone_number) {
+      const phoneNumber = order.phone_number;
+      Linking.openURL(`tel:${phoneNumber}`);
+    }
+  };
+
+  const getPaymentMethod = payMethod => {
+    if (payMethod === '0' || !payMethod) {
+      return 'Tiền mặt';
+    } else {
+      return payMethod;
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Order Status */}
-      {ordersNew.order_status && (
-        <View
-          style={[
-            styles.statusContainer,
-            {backgroundColor: getStatusColor(ordersNew.order_status)},
-          ]}>
-          <Text style={styles.statusText}>
-            {getStatusText(ordersNew.order_status)}
-          </Text>
-        </View>
-      )}
+      {/* Order Header - Status, ID and Date in one block */}
+      <View style={styles.orderHeaderSection}>
+        {/* Status */}
+        {order.order_status && (
+          <View
+            style={[
+              styles.statusContainer,
+              {backgroundColor: getStatusColor(order.order_status)},
+            ]}>
+            <MaterialIcons
+              name="check-circle"
+              size={20}
+              color="white"
+              style={styles.statusIcon}
+            />
+            <Text style={styles.statusText}>
+              {getStatusText(order.order_status)}
+            </Text>
+          </View>
+        )}
 
-      {/* Order ID and Customer Info */}
+        {/* Order ID and Date */}
+        <View style={styles.orderInfoHeader}>
+          <View style={styles.orderIdBox}>
+            <MaterialIcons
+              name="receipt"
+              size={18}
+              color="#333"
+              style={styles.icon}
+            />
+            <Text style={styles.orderId}>Mã đơn: {order.order_id}</Text>
+          </View>
+          <View style={styles.orderDateBox}>
+            <MaterialIcons
+              name="event"
+              size={18}
+              color="#333"
+              style={styles.icon}
+            />
+            <Text style={styles.orderTime}>
+              {formatDate(order.order_created_at)}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Customer Info - separate block */}
       <View style={styles.orderInfo}>
-        <View style={styles.orderIdContainer}>
-          <Text style={styles.orderId}>Mã đơn: {ordersNew.id}</Text>
-          <Text style={styles.orderTime}>
-            {formatDate(ordersNew.order_date)}
-          </Text>
-        </View>
-
+        {/* Customer Info */}
         <View style={styles.orderUser}>
           <View style={styles.customerInfoContainer}>
             <MaterialIcons
@@ -99,7 +137,7 @@ const OrderDetailScreen = ({route}) => {
               style={styles.icon}
             />
             <Text style={styles.orderId}>
-              Người nhận: {ordersNew.receiver_name || 'N/A'}
+              Người nhận: {order.customer_name || 'N/A'}
             </Text>
           </View>
 
@@ -113,12 +151,12 @@ const OrderDetailScreen = ({route}) => {
               style={styles.icon}
             />
             <Text style={styles.orderTime}>
-              {ordersNew.phone_number || 'N/A'}
+              {order.customer_phone || 'N/A'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        {ordersNew.address_receiver && (
+        {order.address && (
           <View style={styles.addressContainer}>
             <MaterialIcons
               name="location-on"
@@ -126,34 +164,25 @@ const OrderDetailScreen = ({route}) => {
               color="#FF5722"
               style={styles.icon}
             />
-            <Text style={styles.addressText}>{ordersNew.address_receiver}</Text>
+            <Text style={styles.addressText}>{order.address}</Text>
           </View>
         )}
       </View>
 
       {/* Restaurant Information */}
-      {ordersNew.Restaurant && (
-        <View style={styles.restaurantInfoContainer}>
-          <Image
-            source={{uri: ordersNew.Restaurant.image}}
-            style={styles.restaurantImage}
-          />
-          <View style={styles.restaurantDetails}>
-            <Text style={styles.restaurantName}>
-              {ordersNew.Restaurant.name}
-            </Text>
-            <Text style={styles.restaurantDescription}>
-              {ordersNew.Restaurant.description}
-            </Text>
+      <View style={styles.restaurantInfoContainer}>
+        <Image source={{uri: order.image}} style={styles.restaurantImage} />
+        <View style={styles.restaurantDetails}>
+          <Text style={styles.restaurantName}>{order.name}</Text>
+          <Text style={styles.restaurantDescription}>{order.description}</Text>
+          {order.rating && (
             <View style={styles.ratingContainer}>
               <MaterialIcons name="star" size={16} color="#FFD700" />
-              <Text style={styles.restaurantRating}>
-                {ordersNew.Restaurant.rating || 5}
-              </Text>
+              <Text style={styles.restaurantRating}>{order.rating}</Text>
             </View>
-          </View>
+          )}
         </View>
-      )}
+      </View>
 
       {/* Section Title for Items */}
       <View style={styles.sectionHeaderContainer}>
@@ -178,15 +207,23 @@ const OrderDetailScreen = ({route}) => {
                 />
                 <View style={styles.orderItemText}>
                   <Text style={styles.orderItemName}>{item.name}</Text>
-                  {item.toppings && item.toppings.length > 0 && (
-                    <View style={styles.toppingsContainer}>
-                      {item.toppings.map((topping, toppingIndex) => (
-                        <Text key={toppingIndex} style={styles.orderItemOption}>
-                          + {topping.topping_name}
-                        </Text>
-                      ))}
-                    </View>
-                  )}
+                  {item.toppings &&
+                    Array.isArray(item.toppings) &&
+                    item.toppings.length > 0 &&
+                    item.toppings[0] !== 'Array' && (
+                      <View style={styles.toppingsContainer}>
+                        {item.toppings.map((topping, toppingIndex) => (
+                          <Text
+                            key={toppingIndex}
+                            style={styles.orderItemOption}>
+                            +{' '}
+                            {typeof topping === 'object'
+                              ? topping.topping_name
+                              : topping}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
                   <View style={styles.orderItemInfo}>
                     <View style={styles.quantityContainer}>
                       <Text style={styles.quantityLabel}>Số lượng:</Text>
@@ -216,7 +253,7 @@ const OrderDetailScreen = ({route}) => {
       </View>
 
       {/* Note */}
-      {ordersNew.note && (
+      {order.note && (
         <View style={styles.noteContainer}>
           <MaterialIcons
             name="note"
@@ -224,9 +261,44 @@ const OrderDetailScreen = ({route}) => {
             color="#555"
             style={styles.icon}
           />
-          <Text style={styles.noteText}>Ghi chú: {ordersNew.note}</Text>
+          <Text style={styles.noteText}>Ghi chú: {order.note}</Text>
         </View>
       )}
+
+      {/* Coupons Section */}
+      {order.coupons &&
+        Array.isArray(order.coupons) &&
+        order.coupons.length > 0 && (
+          <View style={styles.couponsContainer}>
+            <View style={styles.sectionHeaderContainer}>
+              <MaterialIcons name="local-offer" size={20} color="#333" />
+              <Text style={styles.sectionTitle}>Phiếu giảm giá</Text>
+            </View>
+
+            {order.coupons
+              .filter(
+                coupon =>
+                  coupon.coupon_code &&
+                  coupon.coupon_name &&
+                  coupon.discount_value,
+              )
+              .map((coupon, index) => (
+                <View key={index} style={styles.couponItem}>
+                  <View style={styles.couponLeftSide}>
+                    <Text style={styles.couponCode}>{coupon.coupon_code}</Text>
+                    <Text style={styles.couponName}>{coupon.coupon_name}</Text>
+                  </View>
+                  <View style={styles.couponRightSide}>
+                    <Text style={styles.couponValue}>
+                      {coupon.discount_type === 'PERCENTAGE'
+                        ? `-${coupon.discount_value}%`
+                        : `-${formatPrice(coupon.discount_value)}`}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+          </View>
+        )}
 
       {/* Payment Information */}
       <View style={styles.paymentInfoContainer}>
@@ -238,7 +310,7 @@ const OrderDetailScreen = ({route}) => {
             style={styles.icon}
           />
           <Text style={styles.paymentMethod}>
-            Trả qua {ordersNew.order_pay || 'Tiền mặt'}
+            Trả qua {getPaymentMethod(order.order_pay)}
           </Text>
         </View>
 
@@ -246,8 +318,8 @@ const OrderDetailScreen = ({route}) => {
           <Text style={styles.paymentText}>Tạm tính:</Text>
           <Text style={styles.paymentText}>
             {formatPrice(
-              parseFloat(ordersNew.price) -
-                parseFloat(ordersNew.delivery_fee || 0) || 0,
+              parseFloat(order.price) - parseFloat(order.delivery_fee || 0) ||
+                0,
             )}
           </Text>
         </View>
@@ -255,14 +327,14 @@ const OrderDetailScreen = ({route}) => {
         <View style={styles.paymentRow}>
           <Text style={styles.paymentText}>Phí giao hàng:</Text>
           <Text style={styles.paymentText}>
-            {formatPrice(ordersNew.delivery_fee || 0)}
+            {formatPrice(order.delivery_fee || 0)}
           </Text>
         </View>
 
         <View style={styles.paymentTotal}>
           <Text style={styles.paymentTotalText}>Tổng cộng</Text>
           <Text style={styles.paymentTotalText}>
-            {formatPrice(ordersNew.price || 0)}
+            {formatPrice(order.price || 0)}
           </Text>
         </View>
       </View>

@@ -67,6 +67,7 @@ const LoginScreen = () => {
           Alert.alert('Lỗi', 'Đã có lỗi xảy ra. Vui lòng thử lại sau');
         }
         console.error('Login error:', error);
+        return;
       } finally {
         const hasRegis = await checkRegister();
         if (hasRegis) {
