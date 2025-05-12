@@ -21,11 +21,6 @@ const AccountScreen = () => {
       path: 'Profile',
     },
     {
-      title: 'Đổi mật khẩu',
-      icon: 'lock',
-      path: 'ChangePassword',
-    },
-    {
       title: 'Xem đánh giá',
       icon: 'star',
       path: 'Review',

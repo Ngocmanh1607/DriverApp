@@ -20,8 +20,8 @@ const PasswordInput = ({value, onChangeText, placeholderText}) => {
       />
       <TextInput
         style={styles.textInput}
-        value={value} // Nhận giá trị từ prop
-        onChangeText={onChangeText} // Gọi hàm onChangeText từ prop
+        value={value}
+        onChangeText={onChangeText}
         placeholder={placeholderText}
         secureTextEntry={!isPasswordVisible}
         placeholderTextColor="#A9A9A9"

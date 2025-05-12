@@ -87,6 +87,41 @@ const loginApi = async (email, password) => {
   }
 };
 
+const resetPasswordApi = async (email, password) => {
+  const fcmToken =
+    'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  try {
+    const response = await apiClient.put(
+      '/user/forgot-password',
+      {
+        email: email,
+        password: password,
+        role: 'driver',
+        fcmToken: fcmToken,
+      },
+      {
+        headers: {
+          'x-api-key': apiKey,
+        },
+      },
+    );
+    return true;
+  } catch (error) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response) {
+      throw new Error('Có lỗi xảy ra từ phía server');
+    } else if (error.request) {
+      throw new Error(
+        'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng',
+      );
+    } else {
+      console.error('Lỗi:', error.message);
+      throw new Error('Đã có lỗi xảy ra. Vui lòng thử lại sau');
+    }
+  }
+};
+
 const updateDriver = async driver => {
   try {
     if (!driver || !driver.name) {
@@ -118,11 +153,6 @@ const updateDriver = async driver => {
         },
       },
     );
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -180,11 +210,6 @@ const registerDriver = async info => {
         },
       },
     );
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -222,10 +247,6 @@ const acceptOrder = async orderId => {
         'x-client-id': userId,
       },
     });
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
 
     return response.data.metadata;
   } catch (error) {
@@ -265,10 +286,6 @@ const rejectOrder = async orderId => {
       },
     });
 
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -306,11 +323,6 @@ const confirmOrder = async orderId => {
         'x-client-id': userId,
       },
     });
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -389,10 +401,6 @@ const giveOrder = async orderId => {
       },
     });
 
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -426,11 +434,6 @@ const getOrder = async () => {
         'x-client-id': userId,
       },
     });
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -473,10 +476,6 @@ const changeStatus = async driver_id => {
       },
     );
 
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -515,10 +514,6 @@ const getReview = async driverId => {
       },
     });
 
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -556,10 +551,6 @@ const getMoney = async driverId => {
       },
     });
 
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -596,10 +587,6 @@ const getListMoney = async driverId => {
         'x-client-id': userId,
       },
     });
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
 
     return response.data.metadata;
   } catch (error) {
@@ -646,10 +633,6 @@ const requestWithdrawMoney = async (driverId, money, accountId, bankName) => {
       },
     );
 
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -689,11 +672,6 @@ const getrequestWithdrawMoney = async driverId => {
         },
       },
     );
-
-    if (!response || !response.data || !response.data.metadata) {
-      throw new Error('Không nhận được phản hồi hợp lệ từ máy chủ');
-    }
-
     return response.data.metadata;
   } catch (error) {
     if (error.response?.data?.message) {
@@ -727,4 +705,5 @@ export {
   getListMoney,
   requestWithdrawMoney,
   getrequestWithdrawMoney,
+  resetPasswordApi,
 };

@@ -7,12 +7,13 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  Modal,
 } from 'react-native';
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import PasswordInput from '../components/PasswordInput';
-import {loginApi} from '../api/driverApi';
+import {loginApi, resetPasswordApi} from '../api/driverApi';
 import styles from '../assets/css/LoginStyle';
 import Loading from '../components/Loading';
 import checkRegister from '../utils/checkRegister';
@@ -22,6 +23,12 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isResetModalVisible, setResetModalVisible] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetErrors, setResetErrors] = useState({});
+
   const validate = () => {
     let valid = true;
     let errors = {};
@@ -79,7 +86,44 @@ const LoginScreen = () => {
       }
     }
   };
+  const handleResetPassword = async () => {
+    // Validate inputs
+    let valid = true;
+    let errors = {};
 
+    if (!resetEmail) {
+      valid = false;
+      errors.resetEmail = 'Email là bắt buộc';
+    } else if (!/\S+@\S+\.\S+/.test(resetEmail)) {
+      valid = false;
+      errors.resetEmail = 'Địa chỉ email không hợp lệ';
+    }
+
+    if (!newPassword) {
+      valid = false;
+      errors.newPassword = 'Mật khẩu mới là bắt buộc';
+    } else if (newPassword.length < 6) {
+      valid = false;
+      errors.newPassword = 'Mật khẩu phải chứa ít nhất 6 kí tự';
+    }
+
+    setResetErrors(errors);
+
+    if (valid) {
+      setIsLoading(true);
+      try {
+        await resetPasswordApi(resetEmail, newPassword);
+        Alert.alert('Thành công', 'Mật khẩu đã được cập nhật');
+        setResetModalVisible(false);
+        setResetEmail('');
+        setNewPassword('');
+      } catch (error) {
+        Alert.alert('Lỗi', 'Không thể đặt lại mật khẩu. Vui lòng thử lại sau');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -113,7 +157,7 @@ const LoginScreen = () => {
               <Text style={styles.errorText}>{errors.password}</Text>
             )}
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setResetModalVisible(true)}>
               <Text style={styles.forgotPassText}>Quên mật khẩu?</Text>
             </TouchableOpacity>
           </View>
@@ -125,18 +169,66 @@ const LoginScreen = () => {
               <Text style={styles.textLogin}>Đăng nhập</Text>
             </TouchableOpacity>
           </View>
-
-          {/* <View style={styles.horizontalLine} /> */}
-
-          {/* <View>
-                    <TouchableOpacity style={styles.googleButtonContainer}>
-                        <Image source={require("../access/Images/ic_google.png")} style={styles.topImage} />
-                        <Text style={styles.textLoginGoogle}>Login with Google</Text>
-                    </TouchableOpacity>
-                </View> */}
         </View>
       </TouchableWithoutFeedback>
       {isLoading && <Loading />}
+      <Modal
+        visible={isResetModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setResetModalVisible(false)}>
+        <TouchableWithoutFeedback onPress={() => setResetModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Đặt lại mật khẩu</Text>
+                  <TouchableOpacity onPress={() => setResetModalVisible(false)}>
+                    <Fontisto name="close" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={[styles.inputContainer, {marginHorizontal: 10}]}>
+                  <Fontisto
+                    name="email"
+                    color="#9a9a9a"
+                    size={22}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Email"
+                    placeholderTextColor="#A9A9A9"
+                    value={resetEmail}
+                    onChangeText={setResetEmail}
+                  />
+                </View>
+                {resetErrors.resetEmail && (
+                  <Text style={styles.errorText}>{resetErrors.resetEmail}</Text>
+                )}
+                <View style={{marginHorizontal: -30}}>
+                  <PasswordInput
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholderText="Mật khẩu mới"
+                  />
+                </View>
+                {resetErrors.newPassword && (
+                  <Text style={styles.errorText}>
+                    {resetErrors.newPassword}
+                  </Text>
+                )}
+
+                <TouchableOpacity
+                  style={styles.resetButton}
+                  onPress={handleResetPassword}>
+                  <Text style={styles.resetButtonText}>Đặt lại mật khẩu</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };

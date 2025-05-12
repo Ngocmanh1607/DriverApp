@@ -44,7 +44,6 @@ const WalletScreen = () => {
         console.error('Lỗi khi lấy ID tài xế:', error.message);
       }
     };
-
     fetchDriverId();
   }, []);
   useEffect(() => {
@@ -73,7 +72,6 @@ const WalletScreen = () => {
       if (driverId) {
         const response = await getrequestWithdrawMoney(driverId);
         setWithdrawalHistory(response);
-        console.log('Danh sách giao dịch:', response);
       }
     } catch (error) {
       console.error('Lỗi khi lấy danh sách giao dịch:', error.message);
@@ -109,38 +107,8 @@ const WalletScreen = () => {
       'Thành công',
       'Yêu cầu rút tiền của bạn đã được ghi nhận và đang được xử lý',
     );
+    fetchListTransaction();
   };
-  const handlePress = () => navtigation.navigate('OrderDetail');
-  // const TransactionDetail = ({transaction}) => {
-  //   return (
-  //     <TouchableOpacity
-  //       style={styles.deliveryTransaction}
-  //       onPress={handlePress}>
-  //       <View style={styles.transactionRow}>
-  //         <Text style={styles.transactionLabel}>Mã đơn hàng:</Text>
-  //         <Text style={styles.transactionValue}>#{transaction.order_id}</Text>
-  //       </View>
-
-  //       <View style={styles.transactionRow}>
-  //         <Text style={styles.transactionLabel}>Phí vận chuyển:</Text>
-  //         <Text style={styles.transactionValue}>
-  //           {formatPrice(transaction.delivery_fee)}
-  //         </Text>
-  //       </View>
-
-  //       <View style={styles.transactionRow}>
-  //         <Text style={styles.transactionLabel}>Thời gian:</Text>
-  //         <Text style={styles.transactionValue}>
-  //           {formatDateTime(transaction.createdAt)}
-  //         </Text>
-  //       </View>
-
-  //       <View style={styles.statusBadge}>
-  //         <Text style={styles.statusText}>Đã hoàn thành</Text>
-  //       </View>
-  //     </TouchableOpacity>
-  //   );
-  // };
 
   return (
     <View style={styles.container}>
@@ -213,15 +181,15 @@ const WalletScreen = () => {
               <View key={withdrawal.id} style={styles.withdrawalItem}>
                 <View style={styles.withdrawalLeft}>
                   <Text style={styles.bankInfo}>
-                    {withdrawal.bank_name} - {withdrawal.bank_account}
+                    {withdrawal.bank_name} - {withdrawal.account_id}
                   </Text>
                   <Text style={styles.withdrawalDate}>
-                    {formatDateTime(withdrawal.created_at)}
+                    {formatDateTime(withdrawal.createdAt)}
                   </Text>
                 </View>
                 <View style={styles.withdrawalRight}>
                   <Text style={styles.withdrawAmount}>
-                    -{formatPrice(withdrawal.amount)}
+                    -{formatPrice(withdrawal.withdrawn_money)}
                   </Text>
                   <View style={[styles.statusTag, styles.statusTagSuccess]}>
                     <Text style={styles.statusText}>Thành công</Text>
