@@ -11,5 +11,5 @@ const socket = io('http://localhost:3000', {
 });
 // const socket = io('https://sbr09801-3000.asse.devtunnels.ms', {
 //   autoConnect: false,
-});
+// });
 export default socket;
