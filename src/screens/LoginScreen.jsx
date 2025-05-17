@@ -17,6 +17,7 @@ import {loginApi, resetPasswordApi} from '../api/driverApi';
 import styles from '../assets/css/LoginStyle';
 import Loading from '../components/Loading';
 import checkRegister from '../utils/checkRegister';
+import extractErrorMessageFromHTML from '../utils/extractErrorFromPre';
 const LoginScreen = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
@@ -61,6 +62,8 @@ const LoginScreen = () => {
       try {
         await loginApi(email, password);
       } catch (error) {
+        // const messaging = extractErrorMessageFromHTML(error);
+        // console.log(messaging);
         if (
           error.message ===
           'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng'
@@ -74,15 +77,14 @@ const LoginScreen = () => {
           Alert.alert('Lỗi', 'Đã có lỗi xảy ra. Vui lòng thử lại sau');
         }
         console.error('Login error:', error);
-        return;
-      } finally {
-        const hasRegis = await checkRegister();
-        if (hasRegis) {
-          navigation.navigate('MainDrawer');
-        } else {
-          navigation.navigate('RegisterInf');
-        }
         setIsLoading(false);
+        return;
+      }
+      const hasRegis = await checkRegister();
+      if (hasRegis) {
+        navigation.navigate('MainDrawer');
+      } else {
+        navigation.navigate('RegisterInf');
       }
     }
   };

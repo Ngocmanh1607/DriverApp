@@ -20,7 +20,7 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Thay URL server của bạn
-const socket = io('http://localhost:3000');
+const socket = io('https://sbr09801-3000.asse.devtunnels.ms');
 
 // Hàm kiểm tra quyền truy cập thư viện ảnh
 const requestGalleryPermission = async () => {

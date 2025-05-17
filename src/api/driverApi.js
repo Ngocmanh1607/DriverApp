@@ -72,8 +72,8 @@ const loginApi = async (email, password) => {
 
     return metadata;
   } catch (error) {
-    if (error.response?.data?.message) {
-      throw new Error(error.response.data.message);
+    if (error.response?.data) {
+      throw new Error(error.response.data);
     } else if (error.response) {
       throw new Error('Có lỗi xảy ra từ phía server');
     } else if (error.request) {
@@ -107,8 +107,8 @@ const resetPasswordApi = async (email, password) => {
     );
     return true;
   } catch (error) {
-    if (error.response?.data?.message) {
-      throw new Error(error.response.data.message);
+    if (error.response?.data) {
+      throw new Error(error.response.data);
     } else if (error.response) {
       throw new Error('Có lỗi xảy ra từ phía server');
     } else if (error.request) {
@@ -124,9 +124,7 @@ const resetPasswordApi = async (email, password) => {
 
 const updateDriver = async driver => {
   try {
-    if (!driver || !driver.name) {
-      throw new Error('Thông tin cập nhật không hợp lệ');
-    }
+    console.log(driver);
 
     const userId = await AsyncStorage.getItem('userId');
     const accessToken = await AsyncStorage.getItem('accessToken');
@@ -136,13 +134,19 @@ const updateDriver = async driver => {
     }
 
     const response = await apiClient.put(
-      `/profile`,
+      `/driver`,
       {
-        profile: {
+        driver: {
           name: driver.name,
           image: driver.image,
-          date: driver.date,
           phone_number: driver.phone_number,
+          cic: driver.cic,
+          cccdBack: driver.cccdBack,
+          cccdFront: driver.cccdFront,
+          dob: driver.dob,
+          cavet: driver.cavet,
+          car_name: driver.car_name,
+          license_plate: driver.license_plate,
         },
       },
       {

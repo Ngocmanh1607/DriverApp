@@ -124,6 +124,10 @@ const RegisterInf = ({route}) => {
       );
       return;
     }
+    if (!/^\d{12}$/.test(info.id)) {
+      Alert.alert('Thông báo', 'Số CCCD phải gồm đúng 12 số');
+      return;
+    }
     // Thông báo xác nhận trước khi đăng ký
     Alert.alert(
       'Xác nhận đăng ký',

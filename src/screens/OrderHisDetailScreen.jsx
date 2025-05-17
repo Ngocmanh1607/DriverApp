@@ -56,6 +56,7 @@ const OrderDetailScreen = ({route}) => {
       case 'DELIVERING':
         return 'Đang giao hàng';
       case 'ORDER_CONFIRMED':
+        return 'Giao hàng thành công';
       default:
         return status;
     }

@@ -26,9 +26,7 @@ const OrderScreen = () => {
       try {
         if (driverId) {
           const response = await getOrder(driverId);
-          console.log(response);
-
-          setOrders(response);
+          setOrders(response.slice().reverse());
         } else {
           console.log('chưa có driverID');
         }

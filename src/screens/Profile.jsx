@@ -21,6 +21,7 @@ import {updateDriver, updateLicenseDriver, getInfoUser} from '../api/driverApi';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import styles from '../assets/css/ProfileStyle';
 import {formatDate} from '../utils/format';
+
 const Profile = ({route}) => {
   const [isEditing, setIsEditing] = useState(false);
   const navigation = useNavigation();
@@ -29,7 +30,6 @@ const Profile = ({route}) => {
     image: '',
     fullName: '',
     dob: '',
-    date: '',
     phone_number: '',
     cccdFront: '',
     cccdBack: '',
@@ -45,34 +45,36 @@ const Profile = ({route}) => {
       setInfo(route.params.scannedInfo);
     }
   }, [route.params?.scannedInfo]);
+
+  const fetchInfoUser = async () => {
+    try {
+      const response = await getInfoUser();
+      console.log('response', response);
+      setInfo({
+        id: response.Driver.cic,
+        image: response.image,
+        fullName: response.name,
+        dob: response.Driver.dob,
+        phone_number: response.phone_number,
+        cccdFront: response.Driver.cccdFront,
+        cccdBack: response.Driver.cccdBack,
+        license_plate: response.Driver.license_plate,
+        car_name: response.Driver.car_name,
+        cavet: response.Driver.cavet,
+      });
+      setImage(response.image);
+    } catch (error) {
+      Alert.alert(
+        'Lỗi',
+        'Không thể lấy thông tin người dùng. Vui lòng thử lại sau',
+      );
+    }
+  };
+
   useEffect(() => {
-    const fetchInfoUser = async () => {
-      try {
-        const response = await getInfoUser();
-        console.log('response', response);
-        setInfo({
-          id: response.Driver.cic,
-          image: response.image,
-          fullName: response.name,
-          dob: response.Driver.dob,
-          date: response.Driver.dob,
-          phone_number: response.phone_number,
-          cccdFront: response.Driver.cccdFront,
-          cccdBack: response.Driver.cccdBack,
-          license_plate: response.Driver.license_plate,
-          car_name: response.Driver.car_name,
-          cavet: response.Driver.cavet,
-        });
-        setImage(response.image);
-      } catch (error) {
-        Alert.alert(
-          'Lỗi',
-          'Không thể lấy thông tin người dùng. Vui lòng thử lại sau',
-        );
-      }
-    };
     fetchInfoUser();
   }, []);
+
   const openImagePicker = async type => {
     const options = {
       mediaType: 'photo',
@@ -87,7 +89,7 @@ const Profile = ({route}) => {
         const imageUri = res.assets[0].uri;
         switch (type) {
           case 'avatar':
-            setImageUri(imageUri);
+            setImage(imageUri);
             break;
           case 'cccdFront':
             setInfo(prev => ({...prev, cccdFront: imageUri}));
@@ -96,7 +98,7 @@ const Profile = ({route}) => {
             setInfo(prev => ({...prev, cccdBack: imageUri}));
             break;
           case 'cavet':
-            setBike(prev => ({...prev, cavet: imageUri}));
+            setInfo(prev => ({...prev, cavet: imageUri}));
             break;
           default:
             break;
@@ -127,42 +129,17 @@ const Profile = ({route}) => {
     const phoneRegex = /^(\+84|0)\d{9}$/; // Ví dụ: +84 hoặc 0 theo sau là 9 số
     return phoneRegex.test(phoneNumber);
   };
-  // Validate ngày tháng năm sinh
-  const validateDate = date => {
-    const dateRegex = /^(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4})$/; // Định dạng ngày: dd-mm-yyyy
-    return dateRegex.test(date);
-  };
 
   const toggleEditMode = async () => {
     if (isEditing) {
-      // Kiểm tra các trường bắt buộc
-      if (
-        !info.fullName ||
-        !info.phone ||
-        !info.dob ||
-        !info.address ||
-        !info.cccdFront ||
-        !info.cccdBack
-      ) {
-        Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin cá nhân');
-        return;
-      }
       // Kiểm tra thông tin xe
-      if (!bike.name || !bike.cavet) {
+      if (!info.car_name || !info.cavet) {
         Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin xe');
         return;
       }
       // Kiểm tra định dạng số điện thoại
-      if (!validatePhoneNumber(info.phone)) {
+      if (!validatePhoneNumber(info.phone_number)) {
         Alert.alert('Thông báo', 'Số điện thoại không hợp lệ');
-        return;
-      }
-      // Kiểm tra định dạng ngày sinh
-      if (!validateDate(info.dob)) {
-        Alert.alert(
-          'Thông báo',
-          'Ngày sinh không hợp lệ (định dạng: dd-mm-yyyy)',
-        );
         return;
       }
 
@@ -191,7 +168,6 @@ const Profile = ({route}) => {
                   text: 'Thông tin của bạn đã được cập nhật.',
                   duration: Snackbar.LENGTH_SHORT,
                 });
-                navigation.navigate('MainDrawer');
               }
             } catch (error) {
               Alert.alert(
@@ -210,7 +186,11 @@ const Profile = ({route}) => {
     }
   };
 
-  const handleCancel = () => setIsEditing(!isEditing);
+  const handleCancel = () => {
+    setIsEditing(!isEditing);
+    fetchInfoUser();
+  };
+
   return (
     <View style={styles.container}>
       {isLoading ? (
@@ -248,14 +228,16 @@ const Profile = ({route}) => {
                   <Text style={[styles.label, {marginTop: 50}]}>
                     Thông tin cá nhân
                   </Text>
-                  <TouchableOpacity
-                    style={styles.scanButton}
-                    onPress={() => navigation.navigate('QRScanner')}
-                    disabled={!isEditing}>
-                    <Text style={[styles.input, {color: '#FF0000'}]}>
-                      Quét mã QR để lấy thông tin
-                    </Text>
-                  </TouchableOpacity>
+                  {isEditing && (
+                    <TouchableOpacity
+                      style={styles.scanButton}
+                      onPress={() => navigation.navigate('QRScanner')}
+                      disabled={!isEditing}>
+                      <Text style={[styles.input, {color: '#FF0000'}]}>
+                        Quét mã QR để lấy thông tin
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
                 <TextInput
                   label="Số CCCD"
@@ -279,36 +261,34 @@ const Profile = ({route}) => {
                   style={styles.input}
                   onChangeText={text => setInfo({...info, fullName: text})}
                 />
-                <View
+                {/* <View
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
-                  }}>
-                  <TextInput
+                  }}> */}
+                {/* <TextInput
                     label="Ngày sinh"
                     mode="outlined"
                     activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
                     outlineColor="#666"
                     editable={isEditing}
-                    placeholder="VD: 12/12/1990"
-                    value={formatDate(info.dob) || ''}
+                    placeholder="VD: 1990-12-31"
+                    value={isEditing ? info.dob : formatDate(info.dob) || ''}
                     style={[styles.input, {width: '45%'}]}
                     onChangeText={text => setInfo({...info, dob: text})}
-                  />
-                  <TextInput
-                    label="Số điện thoại"
-                    mode="outlined"
-                    activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
-                    outlineColor="#666"
-                    editable={isEditing}
-                    placeholder="VD: 0909090909"
-                    value={info.phone_number.toString() || ''}
-                    style={[styles.input, {width: '45%'}]}
-                    onChangeText={text =>
-                      setInfo({...info, phone_number: text})
-                    }
-                  />
-                </View>
+                  /> */}
+                <TextInput
+                  label="Số điện thoại"
+                  mode="outlined"
+                  activeOutlineColor={isEditing ? '#e74c3c' : '#666'}
+                  outlineColor="#666"
+                  editable={isEditing}
+                  placeholder="VD: 0909090909"
+                  value={info.phone_number.toString() || ''}
+                  style={styles.input}
+                  onChangeText={text => setInfo({...info, phone_number: text})}
+                />
+                {/* </View> */}
                 <Text style={styles.label}>Ảnh CCCD</Text>
                 <View
                   style={{
