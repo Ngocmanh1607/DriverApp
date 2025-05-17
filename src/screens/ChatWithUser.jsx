@@ -407,6 +407,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
     maxHeight: 100,
     fontSize: 16,
+    color: '#333',
   },
   attachButtonsContainer: {
     flexDirection: 'row',

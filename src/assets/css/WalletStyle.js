@@ -298,7 +298,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  bankSelector: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    width: '100%',
+  },
+  bankSelectorText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'left',
+  },
 
+  withdrawButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FF4B3A',
+    paddingVertical: 12,
+  },
   withdrawButtonText: {
     color: '#FFF',
     fontSize: 15,

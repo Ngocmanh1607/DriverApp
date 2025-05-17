@@ -22,6 +22,7 @@ import {
 } from '../api/driverApi';
 import {formatDateTime} from '../utils/formatTime';
 import {useNavigation} from '@react-navigation/native';
+import BankSelectionModal from '../components/BankSelectionModal';
 const WalletScreen = () => {
   const navtigation = useNavigation();
   const [balance, setBalance] = useState();
@@ -32,6 +33,8 @@ const WalletScreen = () => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [bankAccount, setBankAccount] = useState('');
   const [bankName, setBankName] = useState('');
+  const [selectedBank, setSelectedBank] = useState(null);
+  const [showBankModal, setShowBankModal] = useState(false);
   const [activeTab, setActiveTab] = useState('earnings');
   // Lấy ID tài xế khi khởi tạo
   useEffect(() => {
@@ -94,20 +97,22 @@ const WalletScreen = () => {
       return;
     }
     setShowWithdrawModal(false);
-    setWithdrawAmount('');
-    setBankAccount('');
-    setBankName('');
+
     const response = await requestWithdrawMoney(
       driverId,
       withdrawAmount,
       bankAccount,
-      bankName,
+      selectedBank.name,
     );
     Alert.alert(
       'Thành công',
       'Yêu cầu rút tiền của bạn đã được ghi nhận và đang được xử lý',
     );
+    setWithdrawAmount('');
+    setBankAccount('');
+    setSelectedBank();
     fetchListTransaction();
+    fetchMoney();
   };
 
   return (
@@ -221,12 +226,13 @@ const WalletScreen = () => {
               onChangeText={setWithdrawAmount}
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Tên ngân hàng"
-              value={bankName}
-              onChangeText={setBankName}
-            />
+            <TouchableOpacity
+              style={styles.bankSelector}
+              onPress={() => setShowBankModal(true)}>
+              <Text style={styles.bankSelectorText}>
+                {selectedBank ? selectedBank.name : 'Chọn ngân hàng'}
+              </Text>
+            </TouchableOpacity>
 
             <TextInput
               style={styles.input}
@@ -242,6 +248,12 @@ const WalletScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+        <BankSelectionModal
+          visible={showBankModal}
+          onClose={() => setShowBankModal(false)}
+          onSelectBank={setSelectedBank}
+          selectedBank={selectedBank}
+        />
       </Modal>
     </View>
   );
