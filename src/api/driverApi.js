@@ -4,9 +4,7 @@ import fetchFcmToken from '../utils/fcmToken';
 const apiKey = '123';
 const signupApi = async (email, password) => {
   try {
-    // const fcmToken = await fetchFcmToken();
-    const fcmToken =
-      'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const fcmToken = await fetchFcmToken();
     const response = await apiClient.post(
       '/user/signup',
       {email, password, fcmToken, role: 'driver'},
@@ -88,8 +86,7 @@ const loginApi = async (email, password) => {
 };
 
 const resetPasswordApi = async (email, password) => {
-  const fcmToken =
-    'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const fcmToken = await fetchFcmToken();
   try {
     const response = await apiClient.put(
       '/user/forgot-password',
@@ -194,7 +191,6 @@ const registerDriver = async info => {
           cic: info.id,
           image: info.image,
           name: info.fullName,
-          dob: info.dob,
           gender: info.gender,
           address: info.address,
           date: info.date,
