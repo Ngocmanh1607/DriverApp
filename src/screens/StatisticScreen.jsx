@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import styles from '../assets/css/StatisticStyle';
 import {getInfoUser, getOrder} from '../api/driverApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getReview} from '../api/driverApi';
+import {useFocusEffect} from '@react-navigation/native';
 const StatisticScreen = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('day');
   const [driverId, setDriverId] = useState(null);
@@ -175,21 +176,24 @@ const StatisticScreen = () => {
       return stats;
     }
   };
-  // get order
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const response = await getOrder(driverId);
-        console.log(response);
-        setOrders(response);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchOrder();
-    const newStats = calculateStatistics();
-    setStatistics(newStats);
-  }, [driverId]);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchOrder = async () => {
+        try {
+          const response = await getOrder(driverId);
+          console.log(response);
+          setOrders(response);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      fetchOrder();
+
+      const newStats = calculateStatistics();
+      setStatistics(newStats);
+    }, [driverId]),
+  );
   //get driver ID
   useEffect(() => {
     const fetchDriverId = async () => {
