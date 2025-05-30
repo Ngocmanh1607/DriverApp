@@ -21,7 +21,7 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Thay URL server của bạn
-const socket = io('https://sbr09801-3000.asse.devtunnels.ms');
+const socket = io('https://vpvt75qh-3000.asse.devtunnels.ms');
 
 // Hàm kiểm tra và yêu cầu quyền truy cập thư viện ảnh
 const requestGalleryPermission = async () => {
@@ -176,6 +176,11 @@ const MessageScreen = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const MESSAGES_PER_PAGE = 20;
+
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -193,10 +198,54 @@ const MessageScreen = () => {
   useEffect(() => {
     if (userId) {
       socket.emit('registerUser', userId);
+      socket.emit('joinChat', {
+        senderId: driverId,
+        receiverId: customerId,
+        role: 'driver',
+        role_receiver: 'user',
+      });
+      socket.on('chatHistory', chatHistory => {
+        if (chatHistory) {
+          const filterMessageProperties = messages => {
+            return messages.map(msg => ({
+              senderId: msg.senderId,
+              message: msg.message.trim(),
+              role: msg.role,
+              type: msg.type,
+              date: msg.date,
+            }));
+          };
+          const listMessages = filterMessageProperties(chatHistory.messages);
+
+          setMessages(listMessages);
+        } else {
+          console.log('No chat history found');
+          setMessages([]);
+        }
+      });
+      // Listen for more messages response
+      socket.on('moreMessages', ({messages, hasMore}) => {
+        setMessages(prevMessages => [...messages, ...prevMessages]);
+        setHasMore(hasMore);
+        setIsLoadingMore(false);
+      });
+
+      // Listen for load more errors
+      socket.on('loadMoreError', ({message}) => {
+        console.error('Load more error:', message);
+        setIsLoadingMore(false);
+        Alert.alert('Error', 'Failed to load older messages');
+      });
     }
 
     // Lắng nghe tin nhắn từ server
     const handleReceiveMessage = ({senderId, message, type, role, date}) => {
+      console.log('Received message:', {
+        senderId,
+        message,
+        type,
+      });
+
       console.log('Message received:', {senderId, message, role, type, date});
       setMessages(prevMessages => [
         ...prevMessages,
@@ -208,6 +257,8 @@ const MessageScreen = () => {
 
     return () => {
       socket.off('receiveMessage', handleReceiveMessage);
+      socket.off('moreMessages');
+      socket.off('loadMoreError');
     };
   }, [userId]);
 
@@ -308,18 +359,19 @@ const MessageScreen = () => {
         role: 'driver',
         type: 'image',
         date: timestamp,
+        role_receiver: 'user',
       });
 
-      setMessages(prevMessages => [
-        ...prevMessages,
-        {
-          senderId: driverId,
-          message: base64Image,
-          type: 'image',
-          role: 'driver',
-          date: timestamp,
-        },
-      ]);
+      // setMessages(prevMessages => [
+      //   ...prevMessages,
+      //   {
+      //     senderId: driverId,
+      //     message: base64Image,
+      //     type: 'image',
+      //     role: 'driver',
+      //     date: timestamp,
+      //   },
+      // ]);
     } catch (error) {
       console.error('Lỗi khi gửi ảnh:', error);
       Alert.alert('Lỗi', 'Có lỗi xảy ra khi gửi ảnh.');
@@ -340,18 +392,19 @@ const MessageScreen = () => {
           role: 'driver',
           type: 'text',
           date: timestamp,
+          role_receiver: 'user',
         });
 
-        setMessages(prevMessages => [
-          ...prevMessages,
-          {
-            senderId: driverId,
-            message: message.trim(),
-            role: 'driver',
-            type: 'text',
-            date: timestamp,
-          },
-        ]);
+        // setMessages(prevMessages => [
+        //   ...prevMessages,
+        //   {
+        //     senderId: driverId,
+        //     message: message.trim(),
+        //     role: 'driver',
+        //     type: 'text',
+        //     date: timestamp,
+        //   },
+        // ]);
         setMessage('');
       }
     } catch (error) {
@@ -365,13 +418,25 @@ const MessageScreen = () => {
       <ScrollView
         style={styles.chatContainer}
         ref={scrollViewRef}
-        contentContainerStyle={styles.chatContentContainer}>
+        contentContainerStyle={styles.chatContentContainer}
+        onScroll={({nativeEvent}) => {
+          // Check if scrolled to top
+          if (nativeEvent.contentOffset.y === 0 && hasMore) {
+            loadMoreMessages();
+          }
+        }}
+        scrollEventThrottle={400}>
+        {isLoadingMore && (
+          <View style={styles.loadingMoreContainer}>
+            <Text style={styles.loadingMoreText}>Loading more messages...</Text>
+          </View>
+        )}
         {messages.map((msg, index) => (
           <View key={index}>
             <View
               style={[
                 styles.messageBubble,
-                msg.senderId === driverId && msg.role === 'driver'
+                msg.role === 'driver'
                   ? styles.userMessage
                   : styles.contactMessage,
               ]}>
@@ -379,7 +444,7 @@ const MessageScreen = () => {
                 <Text
                   style={[
                     styles.messageText,
-                    msg.senderId === driverId && msg.role === 'driver'
+                    msg.role === 'driver'
                       ? styles.userMessageText
                       : styles.contactMessageText,
                   ]}>
@@ -397,7 +462,7 @@ const MessageScreen = () => {
             <Text
               style={[
                 styles.timestamp,
-                msg.senderId === driverId && msg.role === 'driver'
+                msg.role === 'driver'
                   ? styles.userTimestamp
                   : styles.contactTimestamp,
               ]}>
@@ -585,5 +650,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
     fontSize: 16,
+  },
+  loadingMoreContainer: {
+    padding: 10,
+    alignItems: 'center',
+  },
+  loadingMoreText: {
+    color: '#666',
+    fontSize: 14,
   },
 });
